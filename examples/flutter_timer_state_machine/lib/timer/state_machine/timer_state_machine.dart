@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_timer_state_machine/ticker.dart';
-import 'package:bloc_state_machine/bloc_state_machine.dart';
+import 'package:state_machine_bloc/state_machine_bloc.dart';
 
 part 'timer_event.dart';
 part 'timer_state.dart';

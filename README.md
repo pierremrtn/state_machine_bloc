@@ -6,10 +6,10 @@ An extension to the bloc state management library which lets you create State Ma
 
 ## Overview
 
-`bloc_state_machine` export a `StateMachine` class, a new kind of bloc designed to declare state machines using a nice builder API.
+`state_machine_bloc` export a `StateMachine` class, a new kind of bloc designed to declare state machines using a nice builder API.
 It can be used in the same way as `Cubit` and `Bloc` and it aims to be compatible with the rest of the ecosystem.
 
-`bloc_state_machine` supports:
+`state_machine_bloc` supports:
 
 - Storing data in states
 - Defining state transitions based on event
@@ -72,10 +72,10 @@ This project is very early and in active development. A basic Proof of Concept h
 add this to your `pubspec.yaml`
 
 ```dart
-bloc_state_machine:
+state_machine_bloc:
   git:
-    url: git@github.com:Pierre2tm/bloc_state_machine.git
-    path: packages/bloc_state_machine
+    url: git@github.com:Pierre2tm/state_machine_bloc.git
+    path: packages/state_machine_bloc
 ```
 
 then run `flutter pub get`.
@@ -83,7 +83,7 @@ then run `flutter pub get`.
 import the package
 
 ```dart
-import 'package:bloc_state_machine/bloc_state_machine.dart'
+import 'package:state_machine_bloc/state_machine_bloc.dart'
 ```
 
 ### Usage
@@ -93,7 +93,7 @@ Declare your `StateMachine`:
 *timer.dart*
 
 ```dart
-import 'package:bloc_state_machine/bloc_state_machine.dart';
+import 'package:state_machine_bloc/state_machine_bloc.dart';
 
 class Event {}
 class Started extends Event {}

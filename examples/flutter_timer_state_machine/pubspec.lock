@@ -36,13 +36,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "8.0.2"
-  bloc_state_machine:
+  state_machine_bloc:
     dependency: "direct main"
     description:
-      path: "packages/bloc_state_machine"
+      path: "packages/state_machine_bloc"
       ref: HEAD
       resolved-ref: a5a1cf27b6bf4e3ce99d54bfdac0697a33e1090d
-      url: "git@github.com:Pierre2tm/bloc_state_machine.git"
+      url: "git@github.com:Pierre2tm/state_machine_bloc.git"
     source: git
     version: "0.0.1-dev.1"
   bloc_test:

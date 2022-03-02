@@ -12,10 +12,10 @@ dependencies:
   equatable: ^2.0.3
   bloc: ^8.0.2
   flutter_bloc: ^8.0.1
-  bloc_state_machine:
+  state_machine_bloc:
     git:
-      url: git@github.com:Pierre2tm/bloc_state_machine.git
-      path: packages/bloc_state_machine
+      url: git@github.com:Pierre2tm/state_machine_bloc.git
+      path: packages/state_machine_bloc
 
 dev_dependencies:
   flutter_test:
