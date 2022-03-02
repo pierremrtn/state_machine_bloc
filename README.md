@@ -75,7 +75,7 @@ add this to your `pubspec.yaml`
 bloc_state_machine:
   git:
     url: git@github.com:Pierre2tm/bloc_state_machine.git
-    path: package/bloc_state_machine
+    path: packages/bloc_state_machine
 ```
 
 then run `flutter pub get`.
