@@ -8,16 +8,12 @@ part 'state_definition_builder.dart';
 abstract class StateMachine<Event, State> extends BlocBase<State>
     implements BlocEventSink<Event> {
   StateMachine(State initial) : super(initial) {
-    _bindInternalStateStream();
     _bindEventsToStates();
-    _stateMachineController.add(initial);
   }
 
   // final _blocObserver = BlocOverrides.current?.blocObserver;
-  final _stateMachineController = StreamController<State>();
   final _stateDefinitions = <Type, _StateDefinition>{};
   final _eventController = StreamController<Event>();
-  late final StreamSubscription? _stateMachineSubscription;
   late final StreamSubscription? _eventSubscription;
 
   @override
@@ -39,7 +35,7 @@ abstract class StateMachine<Event, State> extends BlocBase<State>
         definitionBuilder,
   ]) {
     // TODO: CHECK IF HANLDER/STATE EXIST
-    _stateDefinitions.putIfAbsent(DefinedState, () {
+    final definition = _stateDefinitions.putIfAbsent(DefinedState, () {
       if (definitionBuilder != null) {
         return definitionBuilder
             .call(StateDefinitionBuilder<Event, State, DefinedState>())
@@ -48,6 +44,9 @@ abstract class StateMachine<Event, State> extends BlocBase<State>
         return _StateDefinition<Event, State, DefinedState>.empty();
       }
     });
+    if (state.runtimeType is DefinedState) {
+      definition.enter(state);
+    }
   }
 
   @protected
@@ -66,39 +65,23 @@ abstract class StateMachine<Event, State> extends BlocBase<State>
   @override
   void emit(State state) => super.emit(state);
 
-  void _bindEventsToStates() {
-    //Todo: add transformer
-    _eventSubscription = _eventController.stream.asyncMap<State?>(
-      (event) async {
-        return (await _currentStateDefinition.add(event, state)) as State?;
-      },
-    ).listen((State? maybeState) {
-      if (maybeState != null) {
-        _stateMachineController.add(maybeState);
-      }
-    });
-  }
-
   /// Listen to [_stateMachineController] to [emit] new State
   /// and trigger onEnter, onExit callback
   /// onEnter is awaited and if it emit a new state (immediate transition),
   /// emitted state is added to [_stateMachineController]'s stream.
   /// While processing of newState and until onEnter return null,
   /// Event processing are disabled using [_eventSubscription]'s pause method
-  void _bindInternalStateStream() {
-    _stateMachineSubscription =
-        _stateMachineController.stream.asyncMap((newState) async {
-      _eventSubscription?.pause();
-      _currentStateDefinition.exit(state);
+  void _bindEventsToStates() {
+    _eventSubscription = _eventController.stream.asyncMap((event) async {
+      final definition = _stateDefinitions[state.runtimeType];
+      if (definition == null) return;
+
+      final newState = await definition.add(event, state);
+      if (newState == null) return;
+
+      definition.exit(state);
       emit(newState);
-      final immediateStateTransition = (await _currentStateDefinition.enter(
-        newState,
-      )) as State?;
-      if (immediateStateTransition != null) {
-        _stateMachineController.add(immediateStateTransition);
-      } else {
-        _eventSubscription?.resume();
-      }
+      _stateDefinitions[newState.runtimeType]?.enter(newState);
     }).listen(null);
   }
 
@@ -112,13 +95,7 @@ abstract class StateMachine<Event, State> extends BlocBase<State>
   @override
   Future<void> close() async {
     await _eventSubscription?.cancel();
-    await _stateMachineSubscription?.cancel();
     await _eventController.close();
-    await _stateMachineController.close();
     return super.close();
   }
-
-  //TODO: error if no hanlder exist
-  _StateDefinition get _currentStateDefinition =>
-      _stateDefinitions[state.runtimeType]!;
 }
