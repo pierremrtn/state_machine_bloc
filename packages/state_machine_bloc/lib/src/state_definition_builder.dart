@@ -19,7 +19,7 @@ part of 'state_machine.dart';
 /// the state machine leave [DefinedState]
 class StateDefinitionBuilder<Event, State, DefinedState extends State> {
   final List<_StateEventHandler> _handlers = [];
-  StateBuilder<State, DefinedState>? _onEnter;
+  SideEffect<DefinedState>? _onEnter;
   SideEffect<DefinedState>? _onExit;
 
   /// Let you register a [StateBuilder] that is called immediately
@@ -30,7 +30,7 @@ class StateDefinitionBuilder<Event, State, DefinedState extends State> {
   /// State machine will wait for onEnter Completion in order to evaluate
   /// any event received, meaning that you are guaranteed that [onEnter]
   /// transition will always be evaluated before [on] transition and [onExit]
-  void onEnter(StateBuilder<State, DefinedState> sideEffect) {
+  void onEnter(SideEffect<DefinedState> sideEffect) {
     assert(() {
       if (_onEnter != null) {
         throw StateError(
@@ -65,7 +65,7 @@ class StateDefinitionBuilder<Event, State, DefinedState extends State> {
   /// [on] transitions could transit to a new [State] only the first declared one
   /// will be evaluated an therefore emit a new state.
   void on<DefinedEvent extends Event>(
-          EventStateBuilder<DefinedEvent, State, DefinedState> builder
+          EventTransition<DefinedEvent, State, DefinedState> builder
           //    {
           //   EventTransformer<DefinedEvent>? transformer,
           // }

@@ -1,13 +1,8 @@
 part of 'state_machine.dart';
 
 /// Signature of a function that may or may not emit a new state
-/// based on it's current state
-typedef StateBuilder<SuperState, CurrentState extends SuperState>
-    = FutureOr<SuperState?> Function(CurrentState);
-
-/// Signature of a function that may or may not emit a new state
 /// base on it's current state an an external event
-typedef EventStateBuilder<Event, SuperState, CurrentState extends SuperState>
+typedef EventTransition<Event, SuperState, CurrentState extends SuperState>
     = FutureOr<SuperState?> Function(Event, CurrentState);
 
 /// Signature of a callback function called by the state machine
@@ -27,7 +22,7 @@ class _StateEventHandler<SuperEvent, SuperState,
   final bool Function(dynamic value) isType;
   final Type type;
 
-  final EventStateBuilder<DefinedEvent, SuperState, DefinedState> builder;
+  final EventTransition<DefinedEvent, SuperState, DefinedState> builder;
   // final EventTransformer<SuperEvent>? transformer;
 
   FutureOr<SuperState?> handle(SuperEvent e, SuperState s) async =>
@@ -49,11 +44,11 @@ class _StateDefinition<Event, SuperState, DefinedState extends SuperState> {
         onEnter = null,
         onExit = null;
 
-  final StateBuilder<SuperState, DefinedState>? onEnter;
+  final SideEffect<DefinedState>? onEnter;
   final SideEffect<DefinedState>? onExit;
   final List<_StateEventHandler> _handlers;
 
-  FutureOr<SuperState?> enter(DefinedState state) => onEnter?.call(state);
+  FutureOr<void> enter(DefinedState state) => onEnter?.call(state);
   FutureOr<void> exit(DefinedState state) => onExit?.call(state);
 
   FutureOr<SuperState?> add(
