@@ -348,11 +348,9 @@ packages:
   state_machine_bloc:
     dependency: "direct main"
     description:
-      path: "packages/state_machine_bloc"
-      ref: HEAD
-      resolved-ref: "9bcc295877f10cc33efdcbe2aff434c3a762be8a"
-      url: "https://github.com/Pierre2tm/state_machine_bloc.git"
-    source: git
+      path: "../../packages/state_machine_bloc"
+      relative: true
+    source: path
     version: "0.0.1-dev.1"
   stream_channel:
     dependency: transitive
