@@ -58,6 +58,7 @@ void main() {
     blocTest<TimerStateMachine, TimerState>(
       'emits [TickerInitial(60)] when timer is restarted',
       build: () => TimerStateMachine(ticker: ticker),
+      seed: () => TimerRunInProgress(3),
       act: (bloc) => bloc.add(TimerReset()),
       expect: () => [TimerInitial(60)],
     );
@@ -65,12 +66,14 @@ void main() {
     blocTest<TimerStateMachine, TimerState>(
       'emits [TimerRunInProgress(3)] when timer ticks to 3',
       build: () => TimerStateMachine(ticker: ticker),
+      seed: () => TimerRunInProgress(4),
       act: (bloc) => bloc.add(TimerTicked(duration: 3)),
       expect: () => [TimerRunInProgress(3)],
     );
 
     blocTest<TimerStateMachine, TimerState>(
       'emits [TimerRunComplete()] when timer ticks to 0',
+      seed: () => TimerRunInProgress(1),
       build: () => TimerStateMachine(ticker: ticker),
       act: (bloc) => bloc.add(TimerTicked(duration: 0)),
       expect: () => [TimerRunComplete()],

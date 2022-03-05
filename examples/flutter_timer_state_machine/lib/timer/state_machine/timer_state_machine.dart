@@ -10,13 +10,11 @@ class TimerStateMachine extends StateMachine<TimerEvent, TimerState> {
   TimerStateMachine({required Ticker ticker})
       : _ticker = ticker,
         super(TimerInitial(_duration)) {
-    define<TimerInitial>((b) => b
-      ..on<TimerStarted>(
-        (event, state) => TimerRunInProgress(event.duration),
-      ));
+    define<TimerInitial>(
+      (b) => b..on<TimerStarted>(_onTimerStarted),
+    );
 
     define<TimerRunInProgress>((b) => b
-      ..onEnter((state) => _startTicker(state.duration))
       ..on<TimerTicked>(_onTicked)
       ..on<TimerPaused>(_onPaused)
       ..on<TimerReset>(_onReset));
@@ -41,17 +39,18 @@ class TimerStateMachine extends StateMachine<TimerEvent, TimerState> {
     return super.close();
   }
 
-  _startTicker(int duration) {
+  TimerRunInProgress _onTimerStarted(TimerStarted event, _) {
     _tickerSubscription?.cancel();
-    // _tickerSubscription = _ticker.tick(ticks: duration)
-    // .listen((duration) => add(TimerTicked(duration: duration)));
-    _tickerSubscription = _ticker.tick(ticks: duration).listen((duration) {
-      try {
-        add(TimerTicked(duration: duration));
-      } catch (e) {
-        print(e);
-      }
-    });
+    _tickerSubscription = _ticker.tick(ticks: event.duration).listen(
+      (duration) {
+        try {
+          add(TimerTicked(duration: duration));
+        } catch (e) {
+          print(e);
+        }
+      },
+    );
+    return TimerRunInProgress(event.duration);
   }
 
   TimerRunPause _onPaused(TimerPaused event, TimerRunInProgress state) {
