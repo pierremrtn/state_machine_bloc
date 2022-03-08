@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:bloc/bloc.dart';
+import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:meta/meta.dart';
 
 part 'state_definition.dart';
@@ -11,14 +12,8 @@ typedef TransitionFunction<Event, State> = Stream<Transition<Event, State>>
 abstract class StateMachine<Event, State> extends Bloc<Event, State> {
   StateMachine(State initial) : super(initial) {
     on<Event>(
-      (event, emit) {
-        return emit.onEach(
-          mapEventToState(event),
-          onData: (State? newState) {
-            if (newState != null) emit(newState);
-          },
-        );
-      },
+      _mapEventToState,
+      transformer: sequential(),
     );
   }
 
@@ -44,21 +39,58 @@ abstract class StateMachine<Event, State> extends Bloc<Event, State> {
     }
   }
 
+  // [on] function should not be used inside [StateMachine].
+  // Use [define] instead.
   @protected
-  @visibleForTesting
   @override
-  void emit(State newState) {
-    _stateDefinitions[state.runtimeType]?.exit(state);
-    super.emit(newState);
-    _stateDefinitions[newState.runtimeType]?.enter(newState);
+  void on<E extends Event>(
+    EventHandler<E, State> handler, {
+    EventTransformer<E>? transformer,
+  }) {
+    throw "You should use StateMachine.define instead";
   }
 
-  Stream<State> mapEventToState(Event event) async* {
+  Future<void> _mapEventToState(Event event, Emitter emit) async {
     final definition = _stateDefinitions[state.runtimeType];
     if (definition == null) return;
 
-    final newState = (await definition.add(event, state)) as State?;
-    if (newState == null) return;
-    yield newState;
+    final nextState = (await definition.add(event, state)) as State?;
+    if (nextState != null) {
+      emit(nextState);
+    }
+  }
+
+  /// Called whenever a [change] occurs with the given [change].
+  /// A [change] occurs when a new `state` is emitted.
+  /// [onChange] is called before the `state` of the `cubit` is updated.
+  /// [onChange] is a great spot to add logging/analytics for a specific `cubit`.
+  ///
+  /// **Note: `super.onChange` should always be called first.**
+  /// ```dart
+  /// @override
+  /// void onChange(Change change) {
+  ///   // Always call super.onChange with the current change
+  ///   super.onChange(change);
+  ///
+  ///   // Custom onChange logic goes here
+  /// }
+  /// ```
+  ///
+  /// See also:
+  ///
+  /// * [BlocObserver] for observing [Cubit] behavior globally.
+  @protected
+  @mustCallSuper
+  @override
+  void onChange(Change<State> change) {
+    super.onChange(change);
+    final currentType = change.nextState.runtimeType;
+    final nextType = change.nextState.runtimeType;
+    if (currentType == nextType) {
+      _stateDefinitions[currentType]?.change(change.nextState);
+    } else {
+      _stateDefinitions[currentType]?.exit(change.currentState);
+      _stateDefinitions[currentType]?.enter(change.nextState);
+    }
   }
 }

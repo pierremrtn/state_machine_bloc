@@ -7,7 +7,7 @@ typedef EventTransition<Event, SuperState, CurrentState extends SuperState>
 
 /// Signature of a callback function called by the state machine
 /// in various contexts that hasn't the ability to emit new state
-typedef SideEffect<CurrentState> = FutureOr<void> Function(CurrentState);
+typedef SideEffect<CurrentState> = void Function(CurrentState);
 
 /// An event handler for a given [DefinedState]
 /// created using on<Event>() api
@@ -36,20 +36,29 @@ class _StateDefinition<Event, SuperState, DefinedState extends SuperState> {
   const _StateDefinition(
     this._handlers, {
     this.onEnter,
+    this.onChange,
     this.onExit,
   });
 
   const _StateDefinition.empty()
       : _handlers = const [],
         onEnter = null,
+        onChange = null,
         onExit = null;
 
+  /// Called whenever entering state.
   final SideEffect<DefinedState>? onEnter;
+
+  /// Called whenever current state's data changed with the given updated state.
+  final SideEffect<DefinedState>? onChange;
+
+  /// Called whenever exiting state.
   final SideEffect<DefinedState>? onExit;
   final List<_StateEventHandler> _handlers;
 
-  FutureOr<void> enter(DefinedState state) => onEnter?.call(state);
-  FutureOr<void> exit(DefinedState state) => onExit?.call(state);
+  void enter(DefinedState state) => onEnter?.call(state);
+  void change(DefinedState state) => onChange?.call(state);
+  void exit(DefinedState state) => onExit?.call(state);
 
   FutureOr<SuperState?> add(
     Event event,
