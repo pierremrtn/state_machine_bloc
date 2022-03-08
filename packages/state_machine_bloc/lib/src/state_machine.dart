@@ -11,7 +11,7 @@ typedef TransitionFunction<Event, State> = Stream<Transition<Event, State>>
 
 abstract class StateMachine<Event, State> extends Bloc<Event, State> {
   StateMachine(State initial) : super(initial) {
-    on<Event>(
+    super.on<Event>(
       _mapEventToState,
       transformer: sequential(),
     );
