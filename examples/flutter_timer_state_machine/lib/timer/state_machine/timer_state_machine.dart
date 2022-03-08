@@ -14,17 +14,24 @@ class TimerStateMachine extends StateMachine<TimerEvent, TimerState> {
       (b) => b..on<TimerStarted>(_onTimerStarted),
     );
 
-    define<TimerRunInProgress>((b) => b
-      ..on<TimerTicked>(_onTicked)
-      ..on<TimerPaused>(_onPaused)
-      ..on<TimerReset>(_onReset));
+    define<TimerRun>(
+      (b) => b
+        //Reset Timer
+        ..on<TimerReset>(_onReset)
 
-    define<TimerRunPause>((b) => b
-      ..on<TimerResumed>(_onResumed)
-      ..on<TimerReset>(_onReset));
+        //Timer running
+        ..define<TimerRunInProgress>((b) => b
+          ..on<TimerTicked>(_onTicked)
+          ..on<TimerPaused>(_onPaused))
 
-    define<TimerRunComplete>(
-      (b) => b..on<TimerReset>(_onReset),
+        //Timer paused
+        ..define<TimerRunPause>((b) => b
+          ..on<TimerResumed>(
+            _onResumed,
+          ))
+
+        //Timer Completed
+        ..define<TimerRunComplete>(),
     );
   }
 
@@ -63,12 +70,12 @@ class TimerStateMachine extends StateMachine<TimerEvent, TimerState> {
     return TimerRunInProgress(state.duration);
   }
 
-  TimerInitial _onReset(TimerReset event, TimerState state) {
+  TimerInitial _onReset(TimerReset event, TimerRun state) {
     _tickerSubscription?.cancel();
     return TimerInitial(_duration);
   }
 
-  TimerState _onTicked(TimerTicked event, TimerRunInProgress state) {
+  TimerRun _onTicked(TimerTicked event, TimerRunInProgress state) {
     return event.duration > 0
         ? TimerRunInProgress(event.duration)
         : TimerRunComplete();
