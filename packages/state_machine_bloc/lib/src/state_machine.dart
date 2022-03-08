@@ -17,7 +17,7 @@ abstract class StateMachine<Event, State> extends Bloc<Event, State> {
     );
   }
 
-  final _stateDefinitions = <Type, _StateDefinition>{};
+  final List<_StateDefinition> _stateDefinitions = [];
 
   void define<DefinedState extends State>([
     StateDefinitionBuilder<Event, State, DefinedState> Function(
@@ -25,17 +25,19 @@ abstract class StateMachine<Event, State> extends Bloc<Event, State> {
     )?
         definitionBuilder,
   ]) {
-    final definition = _stateDefinitions.putIfAbsent(DefinedState, () {
-      if (definitionBuilder != null) {
-        return definitionBuilder
-            .call(StateDefinitionBuilder<Event, State, DefinedState>())
-            ._build();
-      } else {
-        return _StateDefinition<Event, State, DefinedState>.empty();
-      }
-    });
-    if (state.runtimeType is DefinedState) {
-      definition.enter(state);
+    late _StateDefinition definition;
+    if (definitionBuilder != null) {
+      definition = definitionBuilder
+          .call(StateDefinitionBuilder<Event, State, DefinedState>())
+          ._build();
+    } else {
+      definition = _StateDefinition<Event, State, DefinedState>.empty();
+    }
+
+    _stateDefinitions.add(definition);
+
+    if (state is DefinedState) {
+      definition.onEnter(state);
     }
   }
 
@@ -51,11 +53,11 @@ abstract class StateMachine<Event, State> extends Bloc<Event, State> {
   }
 
   Future<void> _mapEventToState(Event event, Emitter emit) async {
-    final definition = _stateDefinitions[state.runtimeType];
-    if (definition == null) return;
+    final definition = _stateDefinitions.firstWhere((def) => def.isType(state));
 
     final nextState = (await definition.add(event, state)) as State?;
     if (nextState != null) {
+      final test = nextState == state;
       emit(nextState);
     }
   }
@@ -84,13 +86,16 @@ abstract class StateMachine<Event, State> extends Bloc<Event, State> {
   @override
   void onChange(Change<State> change) {
     super.onChange(change);
-    final currentType = change.nextState.runtimeType;
-    final nextType = change.nextState.runtimeType;
-    if (currentType == nextType) {
-      _stateDefinitions[currentType]?.change(change.nextState);
+    final currentDefinition = _definition(change.currentState);
+    final nextDefinition = _definition(change.nextState);
+    if (currentDefinition == nextDefinition) {
+      currentDefinition.onChange(change.currentState, change.nextState);
     } else {
-      _stateDefinitions[currentType]?.exit(change.currentState);
-      _stateDefinitions[currentType]?.enter(change.nextState);
+      currentDefinition.onExit(change.currentState);
+      nextDefinition.onEnter(change.nextState);
     }
   }
+
+  _StateDefinition _definition(State state) =>
+      _stateDefinitions.firstWhere((def) => def.isType(state));
 }

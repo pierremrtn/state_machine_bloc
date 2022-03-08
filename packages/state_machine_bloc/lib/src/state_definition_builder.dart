@@ -19,6 +19,7 @@ part of 'state_machine.dart';
 /// the state machine leave [DefinedState]
 class StateDefinitionBuilder<Event, State, DefinedState extends State> {
   final List<_StateEventHandler> _handlers = [];
+  final List<_StateDefinition> _nestedStateDefinitions = [];
   SideEffect<DefinedState>? _onEnter;
   SideEffect<DefinedState>? _onExit;
 
@@ -65,11 +66,8 @@ class StateDefinitionBuilder<Event, State, DefinedState extends State> {
   /// [on] transitions could transit to a new [State] only the first declared one
   /// will be evaluated an therefore emit a new state.
   void on<DefinedEvent extends Event>(
-          EventTransition<DefinedEvent, State, DefinedState> builder
-          //    {
-          //   EventTransformer<DefinedEvent>? transformer,
-          // }
-          ) =>
+    EventTransition<DefinedEvent, State, DefinedState> builder,
+  ) =>
       _handlers.add(
         _StateEventHandler<Event, State, DefinedEvent, DefinedState>(
           builder: builder,
@@ -78,8 +76,27 @@ class StateDefinitionBuilder<Event, State, DefinedState extends State> {
         ),
       );
 
+  void define<NestedState extends DefinedState>([
+    StateDefinitionBuilder<Event, State, NestedState> Function(
+            StateDefinitionBuilder<Event, State, NestedState>)?
+        builder,
+  ]) {
+    late _StateDefinition definition;
+    if (builder != null) {
+      definition = builder
+          .call(StateDefinitionBuilder<Event, State, NestedState>())
+          ._build();
+    } else {
+      definition = _StateDefinition<Event, State, NestedState>.empty();
+    }
+
+    _nestedStateDefinitions.add(definition);
+  }
+
   _StateDefinition<Event, State, DefinedState> _build() => _StateDefinition(
-        _handlers,
+        handlers: _handlers,
+        nestedStatesDefinitions:
+            _nestedStateDefinitions.isNotEmpty ? _nestedStateDefinitions : null,
         onEnter: _onEnter,
         onExit: _onExit,
       );
