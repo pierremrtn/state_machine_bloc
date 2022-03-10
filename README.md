@@ -1,6 +1,6 @@
 # BLoC State Machine
 
-An extension to the bloc state management library to define state machines that support state data using a nice declarative API.
+An extension to the bloc state management library to define state machines that support state's data using a nice declarative API.
 
 🚧 This project is still early. Use it with caution! 🚧
 
