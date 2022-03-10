@@ -1,24 +1,24 @@
 # BLoC State Machine
 
-An extension to the bloc state management library to define state machines that support state's data using a nice declarative API.
+An extension to the bloc state management library to define state machines that support state data using a nice declarative API.
 
 🚧 This project is still early. Use it with caution! 🚧
 
 ## Overview
 
-`state_machine_bloc` export a `StateMachine` class, a lightweight wrapper around bloc designed to declare state machines a nice builder API.
-`StateMachine` _is_ a `Bloc`, meaning that you can use use it in the same way as a regular bloc and it's compatible with the rest of the ecosystem.
+`state_machine_bloc` export a `StateMachine` class, a lightweight wrapper around `Bloc` class designed to declare state machines using a nice builder API.
+`StateMachine` _is_ a `Bloc`, meaning that you can use it in the same way as a regular bloc and it's compatible with the rest of the ecosystem.
 
 `state_machine_bloc` supports:
 
 * [X] Storing data in states
 * [X] Asynchronous state transitions
 * [X] Applying guard conditions to transitions
-* [X] state's onEnter/onChange/onExit sideEffect
+* [X] state's onEnter/onChange/onExit side effect
 * [X] Nested states without depth limit
 
-State machines eliminates bugs and weird situations because they won't let the UI transition to a state which we don’t know about.
-Its also eliminates the need for code to protects other codes from execution because StateMachine do not process events that are not explicitly defined as acceptable for the current state.
+State machines eliminate bugs and weird situations because they won't let the UI transition to a state which you don’t know about.
+It also eliminates the need for code to protect other codes from execution because StateMachine does not process events that are not explicitly defined as acceptable for the current state.
 
 ```dart
 class Timer extends StateMachine<Event, State> {
@@ -31,12 +31,14 @@ class Timer extends StateMachine<Event, State> {
             ..onExit(_startTicker)
         );
 
-        //Started state handle reset event for both Running and Paused sub-states
         define<Started>((b) => b
+            //Started parent state handle reset event for both Running and Paused sub-states
             ..on<ResetButtonPressed>(
                 (ResetButtonPressed event, Started currentState) => Idle(),
             )
             ..define<Running>((b) => b
+                ..onEnter((Running state) => print(state.duration)) //0 and each timer is resumed
+                ..onChange((Running old, Running next) => print(next.duration)) //1, 2, 3, ...
                 ..on<Ticked>(
                     (PauseButtonPressed event, Running state) =>
                         state.duration >= 60
@@ -46,8 +48,6 @@ class Timer extends StateMachine<Event, State> {
                 ..on<PauseButtonPressed>(
                     (PauseButtonPressed event, Running state) => Paused(state.duration),
                 )
-                ..onEnter((Running state) => print(state.duration)) //0 and each timer is resumed
-                ..onChange((Running old, Running next) => print(next.duration)) //1, 2, 3, ...
             )
             ..define<Paused>((b) => b
                 ..onEnter(_pauseTicker)
@@ -147,13 +147,13 @@ BlocProvider(
 );
 ```
 
-### Defining States and Events
+### Defining states and events
 
-`StateMachine` expose `define<State>` method that should be used to define each state machine possible state and its transitions to other states. You can also register side effects to react to state lifecycle event.
+`StateMachine` expose `define<State>` method that should be used to define each state machine's possible state and its transitions to other states. You can also register side effects to react to state lifecycle events.
 
 Just like `Bloc`, a state machine defined as `StateMachine<Event, State>` should have each of its defined states a sub-type of `State` and each of its defined events a sub-type of `Event`.
 
-You can call `define` as many time you want, but each defined state should have an unique type. An other rule is that the state machine should never be in a state that it's has not been defined. If this happen, `StateMachine` will throw an `InvalidState` error.
+You can call `define` as many times you want, but each defined state should have a unique type. Another rule is that the state machine should never be in a state that it has not been defined. If this happens, `StateMachine` will throw an `InvalidState` error.
 
 **`define` should only be used inside `StateMachine`'s constructor**
 **Don't use `on<Event>` inside `StateMachine`. `StateMachine` takes care of calling `on<Event>` under the hood for you.**
@@ -174,7 +174,7 @@ define<State>((b) => b
     ..on<DataReceived>( //transition are evaluated sequentially
         (DataReceived event, State state) => OtherState(),
     )
-    ..on<DataReceived>( //you can have as many transition you want, even of the same Event type
+    ..on<DataReceived>( //you can have as many transitions you want, even of the same Event type
         (DataReceived event, State state) => OtherState(),
     )
     ..on<OtherEvent>( // transitions can be async
@@ -184,12 +184,12 @@ define<State>((b) => b
 define<NextState>();
 define<OtherState>();
 ```
-Transitions are evaluated sequentially. Transition are evaluated in the same order that they are defined. If a transition is `async`, it will be awaited before evaluating next one.
+Transitions are evaluated sequentially. Transitions are evaluated in the same order that they are defined. If a transition is `async`, it will be awaited before evaluating the next one.
 
-A transition could return a newState or null to indicate that the transition is refused. If null is returned, next transition is evaluated.
-If all transitions return null, current state remain unchanged and no side effects are triggered.
+A transition could return a new state or null to indicate that the transition is refused. If a state is returned, state machine transit to this new state. If null is returned, the next transition is evaluated.
+If all transitions return null, the current state remains unchanged and no side effects are triggered.
 
-**If a new state is returned from a transition where `newState == state`, the new state will be ignored**. If you're using state containing data, make sure you've implemented `==` operator. You could use `freezed` or `equatable` package for this purpose.
+**If a new state is returned from a transition where `newState == state`, the new state will be ignored**. If you're using state that contain data, make sure you've implemented `==` operator. You could use `freezed` or `equatable` package for this purpose. See example folder.
 
 ### Side Effects
 ```dart
@@ -199,7 +199,7 @@ define<State>((b) => b
     ..onExit((State state) { /* called when exiting State */ })
 ```
 
-**onEnter** is called when State Machine enter a state. If `State` is the initial `StateMachine`'s state, onEnter is called at initialization.
+**onEnter** is called when State Machine enters a state. If `State` is the initial `StateMachine`'s state, onEnter is called at initialization.
 **onChange** is called when a state transit to itself. onChange **is not** called if `state == nextState` or when the state machine enter the state for the first time.
 **onExit** is called before State Machine's exit a state.
 
@@ -234,12 +234,12 @@ define<On>((b) => b
 );
 ```
 
-Nested states are create by calling `define<State>` method on an other state's builder. There is no limit to the depth of state nesting. Nested states have the same capabilities than other states. They have access to both transitions and side effects. However there are few limitation that you should keep in mind:
+Nested states are created by calling `define<State>` method on another state's builder. There is no limit to the depth of state nesting. Nested states have the same capabilities as other states. They have access to both transitions and side effects. However, there are few limitations that you should keep in mind:
 - Nested states should always be a sub-type of their parent state's type
-- State machine can't be in a state that has child state. You should set state machine's state to a child state instead.
+- State machine can ony be in state that has no child. You should never transit to parent state directly. Transit to one of it's child state instead.
 
 #### Transition evaluation order
-Parent's transitions and side effect are evaluated first. If parent enter transition, child transition will not be evaluated.
+Parent's transitions and side effects are evaluated first. If parent enters transition, child transitions will not be evaluated.
 
 #### Side effects
 **onEnter**
@@ -247,7 +247,7 @@ Parent's transitions and side effect are evaluated first. If parent enter transi
 - for child state: called each time entering the given child state
 
 **onChange**
-- for parent state: called each time a child state change or transit to one of its other child state.
+- for parent state: called each time a child state changes or transit to one of its other child states.
 - for child state: called each time child transit to itself and `state != nextState`. 
 
 **onExit**
