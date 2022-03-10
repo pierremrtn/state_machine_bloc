@@ -199,9 +199,11 @@ define<State>((b) => b
     ..onExit((State state) { /* called when exiting State */ })
 ```
 
-**onEnter** is called when State Machine enter a state and `PrevState is! State`. If `State` is the initial `StateMachine`'s state, onEnter is called at initialization.
-**onChange** is called when State Machine's current state data changed and `PrevState is State`. It's **not** called when the state machine enter the state for the first time.
+**onEnter** is called when State Machine enter a state. If `State` is the initial `StateMachine`'s state, onEnter is called at initialization.
+**onChange** is called when a state transit to itself. onChange **is not** called if `state == nextState` or when the state machine enter the state for the first time.
 **onExit** is called before State Machine's exit a state.
+
+#### Async side effect
 
 You can give async function as parameter for side effects, but remember they will **not** be awaited.
 ```dart
@@ -210,13 +212,47 @@ define<State>((b) => b
 ```
 
 ### Nested State
+
+Nested states are useful to define transitions or side effects that are common to a group of states.
+
 ```dart
-define<State>((b) => b
-    ..define<NestedState>((b) => b //create nested state
-        ..onEnter( /* ... */ )
-        /* ... */
-    )
+define<Off>()
+    ..on<TurnOn>((Off state) => Green())
+);
+
+define<On>((b) => b
+    ..on<ShutDown>((On state) => Off())
+    ..define<Red>((b) => b
+        ..onEnter(_wait(30))
+        ..on<Next>(_transitToGreen))
+    ..define<Orange>((b) => b
+        ..onEnter(_wait(5))
+        ..on<Next>(_transitToRed))
+    ..define<Green>((b) => b
+        ..onEnter(_wait(25))
+        ..on<Next>(_transitToOrange))
+);
 ```
+
+Nested states are create by calling `define<State>` method on an other state's builder. There is no limit to the depth of state nesting. Nested states have the same capabilities than other states. They have access to both transitions and side effects. However there are few limitation that you should keep in mind:
+- Nested states should always be a sub-type of their parent state's type
+- State machine can't be in a state that has child state. You should set state machine's state to a child state instead.
+
+#### Transition evaluation order
+Parent's transitions and side effect are evaluated first. If parent enter transition, child transition will not be evaluated.
+
+#### Side effects
+**onEnter**
+- for parent state: called when entering one of its sub-state
+- for child state: called each time entering the given child state
+
+**onChange**
+- for parent state: called each time a child state change or transit to one of its other child state.
+- for child state: called each time child transit to itself and `state != nextState`. 
+
+**onExit**
+- for parent state: called when `nextState` is not a sub-type of parent state.
+- for child state: called each time exiting the given child state
 
 ## Additional ressources
 
