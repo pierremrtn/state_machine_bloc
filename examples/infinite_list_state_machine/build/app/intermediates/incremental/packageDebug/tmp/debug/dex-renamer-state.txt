@@ -1,4 +1,0 @@
-#Sun Mar 20 16:32:38 CET 2022
-base.0=/Users/pm/Project/state_machine_bloc/examples/infinite_list_state_machine/build/app/intermediates/dex/debug/mergeDexDebug/classes.dex
-renamed.0=classes.dex
-path.0=classes.dex
