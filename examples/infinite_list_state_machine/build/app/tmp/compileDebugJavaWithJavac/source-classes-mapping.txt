@@ -1,0 +1,4 @@
+io/flutter/plugins/GeneratedPluginRegistrant.java
+ io.flutter.plugins.GeneratedPluginRegistrant
+com/example/infinite_list_state_machine/BuildConfig.java
+ com.example.infinite_list_state_machine.BuildConfig
