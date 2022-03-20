@@ -13,7 +13,7 @@ abstract class StateMachine<Event, State> extends Bloc<Event, State> {
   StateMachine(State initial) : super(initial) {
     super.on<Event>(
       _mapEventToState,
-      transformer: sequential(),
+      transformer: droppable(),
     );
   }
 
