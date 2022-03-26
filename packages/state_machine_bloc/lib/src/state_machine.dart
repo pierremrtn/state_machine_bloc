@@ -41,8 +41,9 @@ abstract class StateMachine<Event, State> extends Bloc<Event, State> {
     }
   }
 
-  // [on] function should not be used inside [StateMachine].
-  // Use [define] instead.
+  /// [on] function should not be used inside [StateMachine].
+  /// Use [define] instead.
+  @nonVirtual
   @protected
   @override
   void on<E extends Event>(
