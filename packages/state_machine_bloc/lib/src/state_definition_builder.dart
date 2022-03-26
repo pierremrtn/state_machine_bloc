@@ -22,6 +22,7 @@ class StateDefinitionBuilder<Event, State, DefinedState extends State> {
   final List<_StateDefinition> _nestedStateDefinitions = [];
   SideEffect<DefinedState>? _onEnter;
   SideEffect<DefinedState>? _onExit;
+  OnChangeSideEffect<DefinedState>? _onChange;
 
   /// Let you register a [StateBuilder] that is called immediately
   /// after state machine enter in [DefinedState].
@@ -57,6 +58,23 @@ class StateDefinitionBuilder<Event, State, DefinedState extends State> {
       return true;
     }());
     _onExit = sideEffect;
+  }
+
+  /// Let you register a [OnChangeSideEffect] callback that will be called when
+  /// the state machine transit to a nextState where currentState == nextState
+  /// onChange is also called when the state machine transit from on of
+  /// [DefinedState]'s sub-state to another sub state of [DefinedState].
+  void onChange(OnChangeSideEffect<DefinedState> sideEffect) {
+    assert(() {
+      if (_onChange != null) {
+        throw StateError(
+          'onChange was called multiple times.'
+          'There should only be a single onChange handler per state.',
+        );
+      }
+      return true;
+    }());
+    _onChange = sideEffect;
   }
 
   /// [on] let you register an additional event handler for [DefinedState].
@@ -99,5 +117,6 @@ class StateDefinitionBuilder<Event, State, DefinedState extends State> {
             _nestedStateDefinitions.isNotEmpty ? _nestedStateDefinitions : null,
         onEnter: _onEnter,
         onExit: _onExit,
+        onChange: _onChange,
       );
 }
