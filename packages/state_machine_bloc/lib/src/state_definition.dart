@@ -79,6 +79,9 @@ class _StateDefinition<Event, SuperState, DefinedState extends SuperState> {
     final nextDefinition = _nestedStateDefinition(next);
     if (currentDefinition == nextDefinition) {
       currentDefinition?.onChange(current, next);
+    } else {
+      currentDefinition?.onExit(current);
+      nextDefinition?.onExit(next);
     }
   }
 
