@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:bloc/bloc.dart';
-import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:meta/meta.dart';
 
 part 'state_definition.dart';
@@ -11,10 +10,7 @@ typedef TransitionFunction<Event, State> = Stream<Transition<Event, State>>
 
 abstract class StateMachine<Event, State> extends Bloc<Event, State> {
   StateMachine(State initial) : super(initial) {
-    super.on<Event>(
-      _mapEventToState,
-      transformer: droppable(),
-    );
+    super.on<Event>(_mapEventToState);
   }
 
   final List<_StateDefinition> _stateDefinitions = [];
@@ -53,12 +49,11 @@ abstract class StateMachine<Event, State> extends Bloc<Event, State> {
     throw "You should use StateMachine.define instead";
   }
 
-  Future<void> _mapEventToState(Event event, Emitter emit) async {
+  void _mapEventToState(Event event, Emitter emit) {
     final definition = _stateDefinitions.firstWhere((def) => def.isType(state));
 
-    final nextState = (await definition.add(event, state)) as State?;
+    final nextState = definition.add(event, state) as State?;
     if (nextState != null) {
-      final test = nextState == state;
       emit(nextState);
     }
   }
