@@ -81,7 +81,7 @@ class _StateDefinition<Event, SuperState, DefinedState extends SuperState> {
       currentDefinition?.onChange(current, next);
     } else {
       currentDefinition?.onExit(current);
-      nextDefinition?.onExit(next);
+      nextDefinition?.onEnter(next);
     }
   }
 
