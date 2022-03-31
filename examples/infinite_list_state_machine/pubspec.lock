@@ -365,7 +365,7 @@ packages:
       path: "../../packages/state_machine_bloc"
       relative: true
     source: path
-    version: "0.0.1-dev.2"
+    version: "0.0.1-dev.3"
   stream_channel:
     dependency: transitive
     description:

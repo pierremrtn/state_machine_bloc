@@ -101,6 +101,8 @@ void main() {
         'throttles events',
         setUp: () {
           when(() => httpClient.get(any())).thenAnswer((_) async {
+            // await Future<void>.delayed(Duration.zero);
+            // await Future<void>.delayed(const Duration(milliseconds: 30));
             return http.Response(
               '[{ "id": 1, "title": "post title", "body": "post body" }]',
               200,
@@ -113,6 +115,7 @@ void main() {
           await Future<void>.delayed(Duration.zero);
           bloc.add(PostFetchRequested());
         },
+        // wait: const Duration(seconds: 1),
         expect: () => const <PostState>[
           PostFetchInProgress(
             posts: [],
