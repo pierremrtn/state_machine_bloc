@@ -46,7 +46,7 @@ abstract class StateMachine<Event, State> extends Bloc<Event, State> {
     EventHandler<E, State> handler, {
     EventTransformer<E>? transformer,
   }) {
-    throw "You should use StateMachine.define instead";
+    throw "Invalid use of StateMachine.on. You should use StateMachine.define instead";
   }
 
   void _mapEventToState(Event event, Emitter emit) {
