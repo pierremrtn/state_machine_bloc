@@ -112,7 +112,7 @@ class _StateDefinition<Event, SuperState, DefinedState extends SuperState> {
     try {
       return _nestedStateDefinitions?.firstWhere((def) => def.isType(state));
     } catch (e) {
-      throw "It's looks like state machine is a state that is hasn't been defined. ${state.runtimeType}";
+      throw "It's looks like state machine is in a state that its hasn't been defined. You should define ${state.runtimeType} using StateMachine.define method.";
     }
   }
 }

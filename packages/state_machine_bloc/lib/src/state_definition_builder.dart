@@ -37,7 +37,7 @@ class StateDefinitionBuilder<Event, State, DefinedState extends State> {
       if (_onEnter != null) {
         throw StateError(
           'onEnter was called multiple times.'
-          'There should only be a single onEnter handler per state.',
+          'There should only be a single onEnter side effect registered per state.',
         );
       }
       return true;
@@ -52,7 +52,7 @@ class StateDefinitionBuilder<Event, State, DefinedState extends State> {
       if (_onExit != null) {
         throw StateError(
           'onExit was called multiple times.'
-          'There should only be a single onExit handler per state.',
+          'There should only be a single onExit side effect registered per state.',
         );
       }
       return true;
@@ -69,7 +69,7 @@ class StateDefinitionBuilder<Event, State, DefinedState extends State> {
       if (_onChange != null) {
         throw StateError(
           'onChange was called multiple times.'
-          'There should only be a single onChange handler per state.',
+          'There should only be a single side effect onChange effect per state.',
         );
       }
       return true;

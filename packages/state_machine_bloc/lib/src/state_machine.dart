@@ -1,20 +1,31 @@
-import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:meta/meta.dart';
 
 part 'state_definition.dart';
 part 'state_definition_builder.dart';
 
-typedef TransitionFunction<Event, State> = Stream<Transition<Event, State>>
-    Function(Event);
-
+/// {@template state_machine}
+/// A wrapper around Bloc to facilitate the creation of state machines
+/// {@endtemplate state_machine}
 abstract class StateMachine<Event, State> extends Bloc<Event, State> {
-  StateMachine(State initial) : super(initial) {
-    super.on<Event>(_mapEventToState);
+  StateMachine(
+    State initial, {
+
+    /// Used to change how state machine process events. By default events are processed concurrently.
+    EventTransformer<Event>? transformer,
+  }) : super(initial) {
+    super.on<Event>(_mapEventToState, transformer: transformer);
   }
 
+  final List<Type> _definedStates = [];
   final List<_StateDefinition> _stateDefinitions = [];
 
+  /// define a state machine's state
+  ///
+  /// [definitionBuilder] is a function that takes a [StateDefinitionBuilder]
+  /// as parameter and should return it. The [StateDefinitionBuilder] is used
+  /// to register events handlers and side effect functions for this specific
+  /// state.
   void define<DefinedState extends State>([
     StateDefinitionBuilder<Event, State, DefinedState> Function(
       StateDefinitionBuilder<Event, State, DefinedState>,
@@ -29,6 +40,14 @@ abstract class StateMachine<Event, State> extends Bloc<Event, State> {
     } else {
       definition = _StateDefinition<Event, State, DefinedState>.empty();
     }
+
+    assert(() {
+      if (_definedStates.contains(DefinedState)) {
+        throw "$DefinedState defined multiple times. State should only be defined once.";
+      }
+      _definedStates.add(DefinedState);
+      return true;
+    }());
 
     _stateDefinitions.add(definition);
 
@@ -46,7 +65,7 @@ abstract class StateMachine<Event, State> extends Bloc<Event, State> {
     EventHandler<E, State> handler, {
     EventTransformer<E>? transformer,
   }) {
-    throw "Invalid use of StateMachine.on. You should use StateMachine.define instead";
+    throw "Invalid use of StateMachine.on(). You should use StateMachine.define() instead.";
   }
 
   void _mapEventToState(Event event, Emitter emit) {
