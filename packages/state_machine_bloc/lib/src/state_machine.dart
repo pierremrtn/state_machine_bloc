@@ -21,7 +21,7 @@ abstract class StateMachine<Event, State> extends Bloc<Event, State> {
     )?
         definitionBuilder,
   ]) {
-    late _StateDefinition definition;
+    late final _StateDefinition definition;
     if (definitionBuilder != null) {
       definition = definitionBuilder
           .call(StateDefinitionBuilder<Event, State, DefinedState>())
