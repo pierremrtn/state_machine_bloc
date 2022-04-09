@@ -1,81 +1,119 @@
-An extension to the bloc state management library to define state machines that support state's data using a nice declarative API.
+An extension to the bloc state management library to easily create bloc that behave like traditional state machine.
 
 ## Overview
 
-`state_machine_bloc` export a `StateMachine` class, a lightweight wrapper around `Bloc` class designed to declare state machines using a nice builder API.
+`state_machine_bloc` export a `StateMachine` class, a lightweight wrapper around `Bloc` class that expose convenient methods to describe a state machine.
 `StateMachine` _is_ a `Bloc`, meaning that you can use it in the same way as a regular bloc and it's compatible with the rest of the ecosystem.
 
-`state_machine_bloc` supports:
+`StateMachine` automatically route and filter events according its current state for you so you can focus on building app logic. The package use a flexible builder API to conveniently describe simples to complex state machines.
 
-* [X] Storing data in states
-* [X] Asynchronous state transitions
-* [X] Applying guard conditions to transitions
-* [X] state's onEnter/onChange/onExit side effect
-* [X] Nested states without depth limit
+`state_machine_bloc` enable you to:
+* ✅ Easily define state machine states and their transitions
+* ✅ Store different data for each states
+* ✅ Register callbacks to state's lifecycle events
+* ✅ Apply guard conditions on transitions
+* ✅ Nest states without depth limit
 
 ### Usage
 
-`StateMachine` has a narrow and user-friendly API.
+`StateMachine` expose a new method, `define<State>`, similar to `Bloc`'s `on<Event>`. `define<State>` is used to define one of the state machine's possible states. Its takes a builder function as parameter that lets you register events handlers and side effect for the defined state.
 
-See the example and test folders for additional examples.
+> 🚨 You should **NEVER** use `on<Event>` method inside a StateMachine
 
-Example of creating a StateMachine with two states:
+`define`'s state definition builder function takes a `StateDefinitionBuilder` as parameter and should return it. `StateDefinitionBuilder` expose methods to register event handlers and side effects.
+
+**Event handlers** react to an incoming event and emit or not the next state of the state machine. If they do, State machine transit to this new state. It's called a transition.
+
+**Side effects** are callback function called depending on state lifecycle. You have access to three side effects: `onEnter`, `onExit`and `onChange`.
+
+Example of a login-in form state machine. States names and declarations has been voluntary simplified for demonstration purpose.You still need to implement `operator==` like you do with `Bloc`, using `equatable` or `freezed`.
 
 ```dart
-// Base class for events handled by StateMachine
-class Event {}
-// Base class for StateMachine's State
+import 'package:state_machine_bloc/state_machine_bloc.dart';
+
+// Base classes for state machine's events and states
 class State {}
+class Event {}
 
-class Start extends Event {}
-class Stop extends Event {}
+// State machine's states
+class WaitingFormSubmission extends State {}
+class TryLoggingIn extends State {
+    TryLoggingIn({required this.email, required this.password});
+    final String email;
+    final String password;
+}
+class Success extends State {}
+class Error extends State {}
 
-class Idle extends State {}
-class Run extends State {}
+// State machine's events
+class FormSubmitted extends Event {
+    FormSubmitted({required this.email, required this.password});
+    final String email;
+    final String password;
+}
+class LoginSucceeded extends Event {}
+class LoginFailed extends Event {
+    LoginFailed(this.reason);
+    final String reason;
+}
 
-class MyStateMachine extends StateMachine<Event, State> {
-    MyStateMachine() : super(Idle()) {
-        define<Idle>((b) => b
-            ..on<Start>(
-                (Start event, Idle state) => Run(),
-            ));
-        define<Run>((b) => b
-            ..on<Stop>(
-                (Stop event, Run state) => Idle(),
-            ));
+// State machine's definition
+class LoginStateMachine extends StateMachine<Event, State> {
+    LoginStateMachine({
+        required this.userRepository,
+    }) : super(WaitingFormSubmission()) {
+
+        define<WaitingFormSubmission>(($) => $
+            ..on<FormSubmitted>(_transitToTryLoggingIn));
+
+        define<TryLoggingIn>((b) => b
+            ..onEnter(_login)
+            ..on<LoginSucceeded>(_transitToSuccess)
+            ..on<LoginFailed>(_transitToError));
+
+        define<LoginSuccess>();
+        define<LoginError>();
+    }
+
+    final UserRepository userRepository;
+
+    TryLoggingIn _transitToTryLoggingIn(
+        FormSubmitted event, state,
+    ) => TryLoggingIn(
+        email: event.email,
+        password: event.password,
+    );
+
+    LoginSucceed _transitToSuccess(event, state) => LoginSucceed();
+
+    LoginError _transitToError(event, state) => LoginError();
+
+    Future<void> _login(TryLoggingIn state) async {
+        try {
+            await userRepository.login(
+                email: state.email,
+                password: state.password,
+            );
+            add(LoginSucceeded());
+        } catch (e) {
+            add(LoginFailed(e.toString()));
+        }
     }
 }
 ```
-Use `StateMachine` like a regular bloc:
 
-```dart
-Future<void> main() async {
-  /// Create a `MyStateMachine` instance.
-  final stateMachine = MyStateMachine();
+`StateMachine` **is** a `Bloc`, so you could use it in the same way as `Bloc`:
 
-  /// Access the state of the `bloc` via `state`.
-  print(stateMachine.state); // Idle object
-
-  /// Interact with the `stateMachine` to trigger `state` changes.
-  stateMachine.add(Start());
-
-  /// Wait for next iteration of the event-loop
-  /// to ensure event has been processed.
-  await Future.delayed(Duration.zero);
-
-  /// Access the new `state`.
-  print(stateMachine.state); // Run object
-
-  /// Close the `stateMachine` when it is no longer needed.
-  await stateMachine.close();
-}
-```
-
-with `flutter_bloc`:
 ```dart
 BlocProvider(
     create: (_) => MyStateMachine(),
     child: ...,
+);
+
+...
+
+BlocBuilder<MyStateMachine, MyStateMachineState>(  
+    builder: ...,
 );
 ```
 
