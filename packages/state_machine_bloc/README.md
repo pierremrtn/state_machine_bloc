@@ -1,20 +1,31 @@
-An extension to the bloc state management library to easily create bloc that behave like traditional state machine.
-
-## Overview
-
 `state_machine_bloc` export a `StateMachine` class, a lightweight wrapper around `Bloc` class that expose convenient methods to describe a state machine.
-`StateMachine` _is_ a `Bloc`, meaning that you can use it in the same way as a regular bloc and it's compatible with the rest of the ecosystem.
+`StateMachine` **is** a `Bloc`, meaning that you can use it in the same way as a regular bloc and it's compatible with the rest of the ecosystem.
 
 `StateMachine` automatically route and filter events according its current state for you so you can focus on building app logic. The package use a flexible builder API to conveniently describe simples to complex state machines.
 
 `state_machine_bloc` enable you to:
-* ✅ Easily define state machine states and their transitions
+* ✅ Easily define state machine's states and their transitions
 * ✅ Store different data for each states
 * ✅ Register callbacks to state's lifecycle events
 * ✅ Apply guard conditions on transitions
 * ✅ Nest states without depth limit
 
-### Usage
+# Index
+
+* How to use
+* StateMachine vs Bloc
+* When to use StateMachine
+* Documentation
+    * The state machine
+        * event processing order
+        * transitions evaluation
+    * defining states
+        * event handlers
+        * side effects
+    * nesting states
+* Examples
+
+# How to use
 
 `StateMachine` expose a new method, `define<State>`, similar to `Bloc`'s `on<Event>`. `define<State>` is used to define one of the state machine's possible states. Its takes a builder function as parameter that lets you register events handlers and side effect for the defined state.
 
@@ -117,7 +128,30 @@ BlocBuilder<MyStateMachine, MyStateMachineState>(
 );
 ```
 
-### Defining states and events
+# StateMachine vs Bloc
+
+StateMachine expose an opinionated interface built on top of the Bloc foundation, designed to define state machine (formally a [mealy machine](https://en.wikipedia.org/wiki/Mealy_machine)).
+State machines are very close to what bloc do. The main main difference reside in the number of sates you can have and how events are computed.
+
+With Bloc, you register a set of event handler that can change the current bloc's state when an event is received. Event handlers are processed no matter the current state and they can emit as many new states they want as long it inherit from the base `State` class using an `Emitter` object.
+
+With State machine, you register a set of state, each one with its own set of event handlers. StateMachine can never be in a state that it hasn't been explicitly defined ans it will throw an error if you try to. When an event is received, `StateMachine` search for corresponding events handlers registered for the current state. Event handlers can return a state to indicate `StateMachine` should transit to this new state or `null`, to indicate no transition should happen. They are processed sequentially until one of them return a new state. If no corresponding event event handler is found, event is discarded.
+
+Theses difference in design bring some benefits:
+- The state machine pattern eliminates bugs and weird situations because it wont let the UI transition to state which we don’t know about.
+- It eliminate the need of code that protects other code from execution because the state machine is not accepting events that are not explicitly defined as acceptable for the current state.
+- Business logic rules are written down explicitly in the state machine definition, which make it easy to understand and maintain.
+
+as well some disadvantages:
+- The state machine is less flexible than Bloc. Sometime you will not be able to express certain problems using state machines
+- It trend to be more verbose than bloc
+
+# When to use `StateMachine` ?
+
+Generally, you should use `StateMachine` where you can because it will make your code clean and robust. StateMachine is well suited if you can identify a set of states and easily identify what event belongs to what state. If you need to use complex event transformers or if states are too intricated so it's difficult to distinguish them, then you better use a `Bloc`.
+
+# Features
+## Defining states
 
 `StateMachine` expose `define<State>` method that should be used to define each state machine's possible state and its transitions to other states. You can also register side effects to react to state lifecycle events.
 
