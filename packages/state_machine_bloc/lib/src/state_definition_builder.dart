@@ -18,10 +18,12 @@ part of 'state_machine.dart';
 /// * [onExit] let you register a [SideEffect] callback that will be called when
 /// the state machine leave [DefinedState]
 class StateDefinitionBuilder<Event, State, DefinedState extends State> {
+  final List<Type> _definedStates = [];
   final List<_StateEventHandler> _handlers = [];
   final List<_StateDefinition> _nestedStateDefinitions = [];
   SideEffect<DefinedState>? _onEnter;
   SideEffect<DefinedState>? _onExit;
+  OnChangeSideEffect<DefinedState>? _onChange;
 
   /// Let you register a [StateBuilder] that is called immediately
   /// after state machine enter in [DefinedState].
@@ -36,7 +38,7 @@ class StateDefinitionBuilder<Event, State, DefinedState extends State> {
       if (_onEnter != null) {
         throw StateError(
           'onEnter was called multiple times.'
-          'There should only be a single onEnter handler per state.',
+          'There should only be a single onEnter side effect registered per state.',
         );
       }
       return true;
@@ -51,12 +53,29 @@ class StateDefinitionBuilder<Event, State, DefinedState extends State> {
       if (_onExit != null) {
         throw StateError(
           'onExit was called multiple times.'
-          'There should only be a single onExit handler per state.',
+          'There should only be a single onExit side effect registered per state.',
         );
       }
       return true;
     }());
     _onExit = sideEffect;
+  }
+
+  /// Let you register a [OnChangeSideEffect] callback that will be called when
+  /// the state machine transit to a nextState where currentState == nextState
+  /// onChange is also called when the state machine transit from on of
+  /// [DefinedState]'s sub-state to another sub state of [DefinedState].
+  void onChange(OnChangeSideEffect<DefinedState> sideEffect) {
+    assert(() {
+      if (_onChange != null) {
+        throw StateError(
+          'onChange was called multiple times.'
+          'There should only be a single side effect onChange effect per state.',
+        );
+      }
+      return true;
+    }());
+    _onChange = sideEffect;
   }
 
   /// [on] let you register an additional event handler for [DefinedState].
@@ -90,6 +109,14 @@ class StateDefinitionBuilder<Event, State, DefinedState extends State> {
       definition = _StateDefinition<Event, State, NestedState>.empty();
     }
 
+    assert(() {
+      if (_definedStates.contains(NestedState)) {
+        throw "$NestedState defined multiple times. State should only be defined once.";
+      }
+      _definedStates.add(NestedState);
+      return true;
+    }());
+
     _nestedStateDefinitions.add(definition);
   }
 
@@ -99,5 +126,6 @@ class StateDefinitionBuilder<Event, State, DefinedState extends State> {
             _nestedStateDefinitions.isNotEmpty ? _nestedStateDefinitions : null,
         onEnter: _onEnter,
         onExit: _onExit,
+        onChange: _onChange,
       );
 }

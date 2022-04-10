@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:meta/meta.dart';
@@ -6,26 +5,37 @@ import 'package:meta/meta.dart';
 part 'state_definition.dart';
 part 'state_definition_builder.dart';
 
-typedef TransitionFunction<Event, State> = Stream<Transition<Event, State>>
-    Function(Event);
-
+/// {@template state_machine}
+/// A wrapper around Bloc to facilitate the creation of state machines
+/// {@endtemplate state_machine}
 abstract class StateMachine<Event, State> extends Bloc<Event, State> {
-  StateMachine(State initial) : super(initial) {
-    super.on<Event>(
-      _mapEventToState,
-      transformer: sequential(),
-    );
+  StateMachine(
+    State initial, {
+
+    /// Used to change how state machine process events. The default event transformer is [droppable] by default,
+    /// meaning it process only one event and ignore (drop) any new events until the current event is done.
+    /// Since transitions are sync, it only drop events received in the same event-loop iteration.
+    EventTransformer<Event>? transformer,
+  }) : super(initial) {
+    super.on<Event>(_mapEventToState, transformer: transformer ?? droppable());
   }
 
+  final List<Type> _definedStates = [];
   final List<_StateDefinition> _stateDefinitions = [];
 
+  /// define a state machine's state
+  ///
+  /// [definitionBuilder] is a function that takes a [StateDefinitionBuilder]
+  /// as parameter and should return it. The [StateDefinitionBuilder] is used
+  /// to register events handlers and side effect functions for this specific
+  /// state.
   void define<DefinedState extends State>([
     StateDefinitionBuilder<Event, State, DefinedState> Function(
       StateDefinitionBuilder<Event, State, DefinedState>,
     )?
         definitionBuilder,
   ]) {
-    late _StateDefinition definition;
+    late final _StateDefinition definition;
     if (definitionBuilder != null) {
       definition = definitionBuilder
           .call(StateDefinitionBuilder<Event, State, DefinedState>())
@@ -34,6 +44,14 @@ abstract class StateMachine<Event, State> extends Bloc<Event, State> {
       definition = _StateDefinition<Event, State, DefinedState>.empty();
     }
 
+    assert(() {
+      if (_definedStates.contains(DefinedState)) {
+        throw "$DefinedState defined multiple times. State should only be defined once.";
+      }
+      _definedStates.add(DefinedState);
+      return true;
+    }());
+
     _stateDefinitions.add(definition);
 
     if (state is DefinedState) {
@@ -41,23 +59,23 @@ abstract class StateMachine<Event, State> extends Bloc<Event, State> {
     }
   }
 
-  // [on] function should not be used inside [StateMachine].
-  // Use [define] instead.
+  /// [on] function should not be used inside [StateMachine].
+  /// Use [define] instead.
+  @nonVirtual
   @protected
   @override
   void on<E extends Event>(
     EventHandler<E, State> handler, {
     EventTransformer<E>? transformer,
   }) {
-    throw "You should use StateMachine.define instead";
+    throw "Invalid use of StateMachine.on(). You should use StateMachine.define() instead.";
   }
 
-  Future<void> _mapEventToState(Event event, Emitter emit) async {
+  void _mapEventToState(Event event, Emitter emit) {
     final definition = _stateDefinitions.firstWhere((def) => def.isType(state));
 
-    final nextState = (await definition.add(event, state)) as State?;
+    final nextState = definition.add(event, state) as State?;
     if (nextState != null) {
-      final test = nextState == state;
       emit(nextState);
     }
   }

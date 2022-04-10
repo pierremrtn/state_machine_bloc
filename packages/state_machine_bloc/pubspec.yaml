@@ -1,6 +1,6 @@
 name: state_machine_bloc
 description: An extension to the bloc state management library to define state machines that support state's data using a nice declarative API.
-version: 0.0.1-dev.2
+version: 0.0.1-dev.3
 homepage: https://github.com/Pierre2tm/state_machine_bloc
 repository: https://github.com/Pierre2tm/state_machine_bloc
 
@@ -9,6 +9,7 @@ environment:
 
 dev_dependencies:
   lints: ^1.0.0
+  test: ^1.20.2
 
 dependencies: 
   bloc: ^8.0.2

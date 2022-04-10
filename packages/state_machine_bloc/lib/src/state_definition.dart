@@ -3,7 +3,7 @@ part of 'state_machine.dart';
 /// Signature of a function that may or may not emit a new state
 /// base on it's current state an an external event
 typedef EventTransition<Event, SuperState, CurrentState extends SuperState>
-    = FutureOr<SuperState?> Function(Event, CurrentState);
+    = SuperState? Function(Event, CurrentState);
 
 /// Signature of a callback function called by the state machine
 /// in various contexts that hasn't the ability to emit new state
@@ -26,7 +26,7 @@ class _StateEventHandler<SuperEvent, SuperState,
 
   final EventTransition<DefinedEvent, SuperState, DefinedState> builder;
 
-  FutureOr<SuperState?> handle(SuperEvent e, SuperState s) async =>
+  SuperState? handle(SuperEvent e, SuperState s) =>
       builder(e as DefinedEvent, s as DefinedState);
 }
 
@@ -79,6 +79,9 @@ class _StateDefinition<Event, SuperState, DefinedState extends SuperState> {
     final nextDefinition = _nestedStateDefinition(next);
     if (currentDefinition == nextDefinition) {
       currentDefinition?.onChange(current, next);
+    } else {
+      currentDefinition?.onExit(current);
+      nextDefinition?.onEnter(next);
     }
   }
 
@@ -87,20 +90,20 @@ class _StateDefinition<Event, SuperState, DefinedState extends SuperState> {
     _nestedStateDefinition(state)?.onExit(state);
   }
 
-  FutureOr<SuperState?> add(
+  SuperState? add(
     Event event,
     DefinedState state,
-  ) async {
+  ) {
     final stateHandlers = _handlers.where(
       (handler) => handler.isType(event),
     );
     for (final handler in stateHandlers) {
-      final nextState = (await handler.handle(event, state)) as SuperState?;
+      final nextState = handler.handle(event, state) as SuperState?;
       if (nextState != null) return nextState;
     }
     final nestedDefinition = _nestedStateDefinition(state);
     if (nestedDefinition != null) {
-      return await nestedDefinition.add(event, state);
+      return nestedDefinition.add(event, state);
     }
     return null;
   }
@@ -108,8 +111,8 @@ class _StateDefinition<Event, SuperState, DefinedState extends SuperState> {
   _StateDefinition? _nestedStateDefinition(DefinedState state) {
     try {
       return _nestedStateDefinitions?.firstWhere((def) => def.isType(state));
-    } catch (e) {
-      throw "It's looks like state machine is a state that is hasn't been defined. ${state.runtimeType}";
+    } catch (_) {
+      return null;
     }
   }
 }

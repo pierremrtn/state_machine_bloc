@@ -1,0 +1,28 @@
+name: infinite_list_state_machine
+description: A new Flutter project.
+version: 1.0.0+1
+publish_to: none
+
+environment:
+  sdk: ">=2.16.0 <3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  http: ^0.13.0
+  equatable: ^2.0.3
+  stream_transform: ^2.0.0
+  bloc_concurrency: ^0.2.0
+  bloc: ^8.0.3
+  flutter_bloc: ^8.0.1
+  bloc_test: ^9.0.3
+  state_machine_bloc:
+    path: "../../packages/state_machine_bloc"
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  mocktail: ^0.2.0
+
+flutter:
+  uses-material-design: true
