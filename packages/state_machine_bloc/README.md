@@ -11,24 +11,27 @@ The package use a flexible declarative API to conveniently describe simples to c
 * ✅ Nest states without depth limit
 
 # Index
-* How to use
-* StateMachine vs Bloc
-* When to use StateMachine
-* Documentation
-    * The state machine
-        * event processing order
-        * transitions evaluation
-    * defining states
-        * event handlers
-        * side effects
-    * nesting states
-* Examples
-* Additional resources
+* <a href="#How-to-use">How to use</a>
+* <a href="#State-Machine-vs-Bloc">StateMachine vs Bloc</a>
+* <a href="#When-to-use-`StateMachine`-?"># When to use `StateMachine` ?</a>
+* <a href="#Documentation">Documentation</a>
+    * <a href="#The-state-machine">The state machine</a>
+        * <a href="#Events-processing-order">Events processing order</a>
+        * <a href="#Transitions-evaluation">Transitions evaluation</a>
+    * <a href="#Defining-states">Defining states</a>
+        * <a href="#Event-handlers">Event handlers</a>
+        * <a href="#Side effects">Side effects</a>
+    * <a href="#Nesting states">Nesting states</a>
+        * <a href="#Nested-states-event-handlers">Nested states event handlers</a>
+        * <a href="#Nested-state-side-effects">Nested state side effects</a>
+* <a href="#Examples">Examples</a>
+* <a href="#Issues-and-feature-requests">Issues and feature requests</a>
+* <a href="#Additional-resources">Additional resources</a>
 
 # How to use
 `StateMachine` expose a `define<State>` method, similar to `Bloc`'s `on<Event>`, used to define one of the state machine's possible states. Its takes a builder function as parameter that lets you register events handlers and side effect for the defined state.
 
-> 🚨 You should **NEVER** use `on<Event>` method inside a StateMachine
+> 🚨 You should **NEVER** use `on<Event>` method inside a StateMachine.
 
 `define`'s state definition builder function takes a `StateDefinitionBuilder` as parameter and should return it. `StateDefinitionBuilder` expose methods to register event handlers and side effects.
 
