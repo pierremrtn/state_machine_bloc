@@ -1,4 +1,5 @@
 import 'package:bloc/bloc.dart';
+import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:meta/meta.dart';
 
 part 'state_definition.dart';
@@ -11,10 +12,12 @@ abstract class StateMachine<Event, State> extends Bloc<Event, State> {
   StateMachine(
     State initial, {
 
-    /// Used to change how state machine process events. By default events are processed concurrently.
+    /// Used to change how state machine process events. The default event transformer is [droppable] by default,
+    /// meaning it process only one event and ignore (drop) any new events until the current event is done.
+    /// Since transitions are sync, it only drop events received in the same event-loop iteration.
     EventTransformer<Event>? transformer,
   }) : super(initial) {
-    super.on<Event>(_mapEventToState, transformer: transformer);
+    super.on<Event>(_mapEventToState, transformer: transformer ?? droppable());
   }
 
   final List<Type> _definedStates = [];
