@@ -13,7 +13,7 @@ The package uses a flexible declarative API to conveniently describe simple to c
 # Index
 * <a href="#How-to-use">How to use</a>
 * <a href="#StateMachine-vs-Bloc">StateMachine vs Bloc</a>
-* <a href="#When-to-use-`StateMachine`">When to use StateMachine?</a>
+* <a href="#when-to-use-statemachine">When to use StateMachine?</a>
 * <a href="#Documentation">Documentation</a>
     * <a href="#The-state-machine">The state machine</a>
         * <a href="#Events-processing-order">Events processing order</a>
