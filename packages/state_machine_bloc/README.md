@@ -12,16 +12,16 @@ The package uses a flexible declarative API to conveniently describe simple to c
 
 # Index
 * <a href="#How-to-use">How to use</a>
-* <a href="#State-Machine-vs-Bloc">StateMachine vs Bloc</a>
-* <a href="#When-to-use-`StateMachine`-?"># When to use `StateMachine` ?</a>
+* <a href="#StateMachine-vs-Bloc">StateMachine vs Bloc</a>
+* <a href="#When-to-use-`StateMachine`">When to use StateMachine?</a>
 * <a href="#Documentation">Documentation</a>
     * <a href="#The-state-machine">The state machine</a>
         * <a href="#Events-processing-order">Events processing order</a>
         * <a href="#Transitions-evaluation">Transitions evaluation</a>
     * <a href="#Defining-states">Defining states</a>
         * <a href="#Event-handlers">Event handlers</a>
-        * <a href="#Side effects">Side effects</a>
-    * <a href="#Nesting states">Nesting states</a>
+        * <a href="#Side-effects">Side effects</a>
+    * <a href="#Nesting-states">Nesting states</a>
         * <a href="#Nested-states-event-handlers">Nested states event handlers</a>
         * <a href="#Nested-state-side-effects">Nested state side effects</a>
 * <a href="#Examples">Examples</a>
@@ -144,7 +144,7 @@ The state machine uses `Bloc`'s `on<Event>` method under the hood to register a 
 
 State machine's states should be defined with the `StateMachine`'s `define<State>` methods inside the constructor. You should never try to transit to a state that hasn't been explicitly defined. If the state machine detects a transition to an undefined state, it will throw an error.
 
-### Event processing order
+### Events processing order
 By default, incoming events are processed immediately and every other event received a dropped until the current event finished being processed. Since transitions are synced, it will only drop additional events received in the same event-loop iteration.
 
 `StateMachine` use `droppable` event transformer from `BlocConcurrency` for this purpose. You can override this behavior by passing a `transformer` to the `StateMachine`'s constructor.
@@ -223,7 +223,7 @@ class MyStateMachine extends StateMachine<Event, State> {
     }
 }
 ```
-### Side Effects
+### Side effects
 Side effects are callback functions that you can register to react to the state's lifecycle events. They are generally a good place to request APIs or start async computations. 
 You have access to 3 different side effects:
 **onEnter** is called when State Machine enters a state. If `State` is the initial `StateMachine`'s state, onEnter will be called during state machine initialization.
@@ -299,7 +299,7 @@ You can find usage examples in the repository's [example folder](https://github.
 # Issues and feature requests
 If you find a bug or want to see an additional feature, please fill on the issue on [github](https://github.com/Pierre2tm/state_machine_bloc/issues/new).
 
-## Additional ressources
+## Additional resources
 * [You are managing state? Think twice.](https://krasimirtsonev.com/blog/article/managing-state-in-javascript-with-state-machines-stent)
 * [The rise of state machine](https://www.smashingmagazine.com/2018/01/rise-state-machines/)
 * [Robust React User Interfaces with Finite State Machines](https://css-tricks.com/robust-react-user-interfaces-with-finite-state-machines/)
