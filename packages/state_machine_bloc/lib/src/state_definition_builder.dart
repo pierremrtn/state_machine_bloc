@@ -18,6 +18,7 @@ part of 'state_machine.dart';
 /// * [onExit] let you register a [SideEffect] callback that will be called when
 /// the state machine leave [DefinedState]
 class StateDefinitionBuilder<Event, State, DefinedState extends State> {
+  final List<Type> _definedStates = [];
   final List<_StateEventHandler> _handlers = [];
   final List<_StateDefinition> _nestedStateDefinitions = [];
   SideEffect<DefinedState>? _onEnter;
@@ -107,6 +108,14 @@ class StateDefinitionBuilder<Event, State, DefinedState extends State> {
     } else {
       definition = _StateDefinition<Event, State, NestedState>.empty();
     }
+
+    assert(() {
+      if (_definedStates.contains(NestedState)) {
+        throw "$NestedState defined multiple times. State should only be defined once.";
+      }
+      _definedStates.add(NestedState);
+      return true;
+    }());
 
     _nestedStateDefinitions.add(definition);
   }
