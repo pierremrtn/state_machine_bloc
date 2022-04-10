@@ -1,3 +1,15 @@
+<p align="center">
+<img src="https://raw.githubusercontent.com/Pierre2tm/state_machine_bloc/master/docs/assets/state_machine_bloc_logo_full.png" height="100" alt="State machine Bloc" />
+</p>
+
+<p align="center">
+<a href="https://github.com/Pierre2tm/state_machine_bloc"><img src="https://img.shields.io/github/stars/Pierre2tm/state_machine_bloc.svg?style=flat&logo=github&colorB=deeppink&label=stars" alt="Star on Github"></a>
+<a href="https://github.com/tenhobi/effective_dart"><img src="https://img.shields.io/badge/style-effective_dart-40c4ff.svg" alt="style: effective dart"></a>
+<a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-purple.svg" alt="License: MIT"></a>
+<a href="https://github.com/felangel/bloc"><img src="https://tinyurl.com/bloc-library" alt="Bloc Library"></a>
+</p>
+<p align="center">⚠️ state_machine_bloc is not an official bloc package ⚠️</p>
+
 `state_machine_bloc` exports a `StateMachine`, a lightweight class that inherits from `Bloc` and exposes convenient methods to describe state machines.
 `StateMachine` **is** a `Bloc`, meaning that you can use it in the same way as a regular bloc and it's compatible with the rest of the ecosystem.
 
