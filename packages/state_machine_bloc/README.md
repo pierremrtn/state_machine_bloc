@@ -13,9 +13,9 @@
 `state_machine_bloc` exports a `StateMachine`, a lightweight class that inherits from `Bloc` and exposes convenient methods to describe state machines.
 `StateMachine` **is** a `Bloc`, meaning that you can use it in the same way as a regular bloc and it's compatible with the rest of the ecosystem.
 
-The package uses a flexible declarative API to conveniently describe simple to complex state machines. `StateMachine` route and filter events for you based on the state machine definition you've provided so you can focus on building app logic.
+The package uses a flexible declarative API to conveniently describe simple to complex state machines. `StateMachine` route and filter events for you so you can focus on building app logic.
 
-`state_machine_bloc` enables you to:
+**`state_machine_bloc` enables you to:**
 * ✅ Easily define state machine's states and their transitions
 * ✅ Store different data for each state
 * ✅ React to states lifecycle events
@@ -27,15 +27,15 @@ The package uses a flexible declarative API to conveniently describe simple to c
 * <a href="#StateMachine-vs-Bloc">StateMachine vs Bloc</a>
 * <a href="#when-to-use-statemachine">When to use StateMachine?</a>
 * <a href="#Documentation">Documentation</a>
-    * <a href="#The-state-machine">The state machine</a>
-        * <a href="#Events-processing-order">Events processing order</a>
-        * <a href="#Transitions-evaluation">Transitions evaluation</a>
-    * <a href="#Defining-states">Defining states</a>
-        * <a href="#Event-handlers">Event handlers</a>
-        * <a href="#Side-effects">Side effects</a>
-    * <a href="#Nesting-states">Nesting states</a>
-        * <a href="#Nested-states-event-handlers">Nested states event handlers</a>
-        * <a href="#Nested-state-side-effects">Nested state side effects</a>
+	* <a href="#The-state-machine">The state machine</a>
+		* <a href="#Events-processing-order">Events processing order</a>
+		* <a href="#Transitions-evaluation">Transitions evaluation</a>
+	* <a href="#Defining-states">Defining states</a>
+		* <a href="#Event-handlers">Event handlers</a>
+		* <a href="#Side-effects">Side effects</a>
+	* <a href="#Nesting-states">Nesting states</a>
+		* <a href="#Nested-states-event-handlers">Nested states event handlers</a>
+		* <a href="#Nested-state-side-effects">Nested state side effects</a>
 * <a href="#Examples">Examples</a>
 * <a href="#Issues-and-feature-requests">Issues and feature requests</a>
 * <a href="#Additional-resources">Additional resources</a>
@@ -59,55 +59,45 @@ part 'login_event.dart';
 part 'login_state.dart';
 
 class LoginStateMachine extends StateMachine<LoginEvent, LoginState> {
-    // Define each state machine's state inside 
-    // the constructor using define method
-    LoginStateMachine({
-        required this.userRepository,
-    }) : super(WaitingFormSubmission()) {
+	LoginStateMachine({
+		required this.userRepository,
+	}) : super(WaitingFormSubmission()) {
+		
+		define<WaitingFormSubmission>(($) => $
+			..on<LoginFormSubmitted>(_toTryLoggingIn));
 
-        // Wait for the user to submit the form
-        define<WaitingFormSubmission>(($) => $
-            ..on<LoginFormSubmitted>(_transitToTryLoggingIn));
+		define<TryLoggingIn>(($) => $
+			..onEnter(_login)
+			..on<LoginSucceeded>(_toSuccess)
+			..on<LoginFailed>(_toError));
 
-        // Send form data to the API
-        define<TryLoggingIn>(($) => $
-            ..onEnter(_login)
-            ..on<LoginSucceeded>(_transitToSuccess)
-            ..on<LoginFailed>(_transitToError));
+		define<LoginSuccess>();
+		define<LoginError>();
+	}
 
-        // Redirect user or display an error
-        define<LoginSuccess>();
-        define<LoginError>();
-    }
+	final UserRepository userRepository;
 
-    final UserRepository userRepository;
+	TryLoggingIn _toTryLoggingIn(FormSubmitted event, state)
+		=> TryLoggingIn(email: event.email, password: event.password);
 
-    // Takes form data sent from the UI and save it in the next state
-    TryLoggingIn _transitToTryLoggingIn(
-        FormSubmitted event, state,
-    ) => TryLoggingIn(
-        email: event.email,
-        password: event.password,
-    );
+	LoginSucceed _toSuccess(e, s)
+		=> LoginSucceed();
 
-    // Shortcut syntax since we don't use event or state
-    LoginSucceed _transitToSuccess(e, s) => LoginSucceed();
+	LoginError _toError(LoginFailed event, state)
+		=> LoginError(event.error);
 
-    LoginError _transitToError(LoginFailed event, state)
-        => LoginError(event.error);
-
-    /// Use state's data to try login-in using the API
-    Future<void> _login(TryLoggingIn state) async {
-        try {
-            await userRepository.login(
-                email: state.email,
-                password: state.password,
-            );
-            add(LoginSucceeded());
-        } catch (e) {
-            add(LoginFailed(e.toString()));
-        }
-    }
+	/// Use state's data to try login-in using the API
+	Future<void> _login(TryLoggingIn state) async {
+		try {
+			await userRepository.login(
+				email: state.email,
+				password: state.password,
+			);
+			add(LoginSucceeded());
+		} catch (e) {
+			add(LoginFailed(e.toString()));
+		}
+	}
 }
 ```
 
@@ -115,14 +105,14 @@ class LoginStateMachine extends StateMachine<LoginEvent, LoginState> {
 
 ```dart
 BlocProvider(
-    create: (_) => MyStateMachine(),
-    child: ...,
+	create: (_) => MyStateMachine(),
+	child: ...,
 );
 
 ...
 
 BlocBuilder<MyStateMachine, MyStateMachineState>(  
-    builder: ...,
+	builder: ...,
 );
 ```
 
@@ -163,7 +153,7 @@ By default, incoming events are processed immediately and every other event rece
 
 ```dart
 class MyStateMachine extends StateMachine<Event, State> {
-    MyStateMachine() : super(Initial(), transformer: /** custom transformer **/) {}
+	MyStateMachine() : super(Initial(), transformer: /** custom transformer **/) {}
 }
 ```
 
@@ -179,10 +169,10 @@ Every defined state for a given `StateMachine<Event, State>` should inherit from
 
 ```dart
 class MyStateMachine extends StateMachine<Event, State> {
-    MyStateMachine() : super(InitialState()) {
-        define<InitialState>();
-        define<OtherState>();
-    }
+	MyStateMachine() : super(InitialState()) {
+		define<InitialState>();
+		define<OtherState>();
+	}
 }
 ```
 
@@ -192,9 +182,9 @@ The builder function takes a `StateDefinitionBuilder` as parameter and should re
 
 ```dart
 define<State>((StateDefinitionBuilder builder) {
-    builder.onEnter((State state) { /* Side effect */ }) 
-    builder.on<Event>((Event event, State state) => NextState()); //transition to NextState
-    return builder;
+	builder.onEnter((State state) { /* Side effect */ }) 
+	builder.on<Event>((Event event, State state) => NextState()); //transition to NextState
+	return builder;
 });
 ```
 
@@ -202,8 +192,8 @@ This syntax is very verbose but hopefully thanks to the dart [cascade](https://d
 
 ```dart
  define<State>(($) => $
-    ..onEnter((State state) {}) 
-    ..on<Event>((Event event, State state) => NextState());
+	..onEnter((State state) {}) 
+	..on<Event>((Event event, State state) => NextState());
 ```
 
 ### Event handlers
@@ -222,17 +212,17 @@ If the returned state is not null, it is considered a transition, and the state 
 **Here an example of three event handlers registered for `InitialState`.**
 ```dart
 class MyStateMachine extends StateMachine<Event, State> {
-    MyStateMachine() : super(InitialState()) {
+	MyStateMachine() : super(InitialState()) {
 
-        define<InitialState>(($) => $
-            ..on<SomeEvent>((SomeEvent e, InitialState s) => null)
-            ..on<SomeEvent>((SomeEvent e, InitialState s) => SecondState())
-            ..on<OtherEvent>((SomeEvent e, InitialState s) => ThirdState())
-        );
+		define<InitialState>(($) => $
+			..on<SomeEvent>((SomeEvent e, InitialState s) => null)
+			..on<SomeEvent>((SomeEvent e, InitialState s) => SecondState())
+			..on<OtherEvent>((SomeEvent e, InitialState s) => ThirdState())
+		);
 
-        define<SecondState>();
-        define<ThirdState>();
-    }
+		define<SecondState>();
+		define<ThirdState>();
+	}
 }
 ```
 ### Side effects
@@ -245,15 +235,15 @@ You can register a side effect for a given state using `StateDefinitionBuilder`'
 
 ```dart
 define<State>((b) => b
-    ..onEnter((State state) { /* called when entering State */ })
-    ..onChange((State current, State next) { /* called when State data changed */ })
-    ..onExit((State state) { /* called when exiting State */ })
+	..onEnter((State state) { /* called when entering State */ })
+	..onChange((State current, State next) { /* called when State data changed */ })
+	..onExit((State state) { /* called when exiting State */ })
 ```
 
 You can give async function as parameter for side effects, but remember they will **not** be awaited.
 ```dart
 define<State>((b) => b
-    ..onEnter((State state) async { /* not awaited */ })
+	..onEnter((State state) async { /* not awaited */ })
 ```
 
 ## Nesting states
@@ -265,8 +255,8 @@ The only restriction you have when defining a nested state is that the child sta
 
 ```dart
 define<WaitingFormSubmission>(($) => $
-    ..on<LoginFormSubmitted>(_transitToTryLoggingIn)
-    ..define<LoginError>()
+	..on<LoginFormSubmitted>(_transitToTryLoggingIn)
+	..define<LoginError>()
 );
 ```
 
@@ -276,15 +266,15 @@ A state can have any number of child states as long their only defined once. Nes
 
 ```dart
 define<Parent>(($) => $
-    ..define<Child1>(($) => $
-        ..onEnter(...)
-        ..onChange(...)
-        ..onExit(...)
-        ..on<Event1>(...)
-        ..define<Child2>(($) => $
-            ...
-        )
-    )
+	..define<Child1>(($) => $
+		..onEnter(...)
+		..onChange(...)
+		..onExit(...)
+		..on<Event1>(...)
+		..define<Child2>(($) => $
+			...
+		)
+	)
 );
 ```
 
