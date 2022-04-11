@@ -27,15 +27,15 @@ The package uses a flexible declarative API to conveniently describe simple to c
 * <a href="#StateMachine-vs-Bloc">StateMachine vs Bloc</a>
 * <a href="#when-to-use-statemachine">When to use StateMachine?</a>
 * <a href="#Documentation">Documentation</a>
-	* <a href="#The-state-machine">The state machine</a>
-		* <a href="#Events-processing-order">Events processing order</a>
-		* <a href="#Transitions-evaluation">Transitions evaluation</a>
-	* <a href="#Defining-states">Defining states</a>
-		* <a href="#Event-handlers">Event handlers</a>
-		* <a href="#Side-effects">Side effects</a>
-	* <a href="#Nesting-states">Nesting states</a>
-		* <a href="#Nested-states-event-handlers">Nested states event handlers</a>
-		* <a href="#Nested-state-side-effects">Nested state side effects</a>
+  * <a href="#The-state-machine">The state machine</a>
+    * <a href="#Events-processing-order">Events processing order</a>
+    * <a href="#Transitions-evaluation">Transitions evaluation</a>
+  * <a href="#Defining-states">Defining states</a>
+    * <a href="#Event-handlers">Event handlers</a>
+    * <a href="#Side-effects">Side effects</a>
+  * <a href="#Nesting-states">Nesting states</a>
+    * <a href="#Nested-states-event-handlers">Nested states event handlers</a>
+    * <a href="#Nested-state-side-effects">Nested state side effects</a>
 * <a href="#Examples">Examples</a>
 * <a href="#Issues-and-feature-requests">Issues and feature requests</a>
 * <a href="#Additional-resources">Additional resources</a>
@@ -59,45 +59,45 @@ part 'login_event.dart';
 part 'login_state.dart';
 
 class LoginStateMachine extends StateMachine<LoginEvent, LoginState> {
-	LoginStateMachine({
-		required this.userRepository,
-	}) : super(WaitingFormSubmission()) {
-		
-		define<WaitingFormSubmission>(($) => $
-			..on<LoginFormSubmitted>(_toTryLoggingIn));
+  LoginStateMachine({
+    required this.userRepository,
+  }) : super(WaitingFormSubmission()) {
+    
+    define<WaitingFormSubmission>(($) => $
+      ..on<LoginFormSubmitted>(_toTryLoggingIn));
 
-		define<TryLoggingIn>(($) => $
-			..onEnter(_login)
-			..on<LoginSucceeded>(_toSuccess)
-			..on<LoginFailed>(_toError));
+    define<TryLoggingIn>(($) => $
+      ..onEnter(_login)
+      ..on<LoginSucceeded>(_toSuccess)
+      ..on<LoginFailed>(_toError));
 
-		define<LoginSuccess>();
-		define<LoginError>();
-	}
+    define<LoginSuccess>();
+    define<LoginError>();
+  }
 
-	final UserRepository userRepository;
+  final UserRepository userRepository;
 
-	TryLoggingIn _toTryLoggingIn(FormSubmitted event, state)
-		=> TryLoggingIn(email: event.email, password: event.password);
+  TryLoggingIn _toTryLoggingIn(FormSubmitted event, state)
+    => TryLoggingIn(email: event.email, password: event.password);
 
-	LoginSucceed _toSuccess(e, s)
-		=> LoginSucceed();
+  LoginSucceed _toSuccess(e, s)
+    => LoginSucceed();
 
-	LoginError _toError(LoginFailed event, state)
-		=> LoginError(event.error);
+  LoginError _toError(LoginFailed event, state)
+    => LoginError(event.error);
 
-	/// Use state's data to try login-in using the API
-	Future<void> _login(TryLoggingIn state) async {
-		try {
-			await userRepository.login(
-				email: state.email,
-				password: state.password,
-			);
-			add(LoginSucceeded());
-		} catch (e) {
-			add(LoginFailed(e.toString()));
-		}
-	}
+  /// Use state's data to try login-in using the API
+  Future<void> _login(TryLoggingIn state) async {
+    try {
+      await userRepository.login(
+        email: state.email,
+        password: state.password,
+      );
+      add(LoginSucceeded());
+    } catch (e) {
+      add(LoginFailed(e.toString()));
+    }
+  }
 }
 ```
 
@@ -105,14 +105,14 @@ class LoginStateMachine extends StateMachine<LoginEvent, LoginState> {
 
 ```dart
 BlocProvider(
-	create: (_) => MyStateMachine(),
-	child: ...,
+  create: (_) => MyStateMachine(),
+  child: ...,
 );
 
 ...
 
 BlocBuilder<MyStateMachine, MyStateMachineState>(  
-	builder: ...,
+  builder: ...,
 );
 ```
 
@@ -153,7 +153,7 @@ By default, incoming events are processed immediately and every other event rece
 
 ```dart
 class MyStateMachine extends StateMachine<Event, State> {
-	MyStateMachine() : super(Initial(), transformer: /** custom transformer **/) {}
+    MyStateMachine() : super(Initial(), transformer: /** custom transformer **/) {}
 }
 ```
 
@@ -169,10 +169,10 @@ Every defined state for a given `StateMachine<Event, State>` should inherit from
 
 ```dart
 class MyStateMachine extends StateMachine<Event, State> {
-	MyStateMachine() : super(InitialState()) {
-		define<InitialState>();
-		define<OtherState>();
-	}
+  MyStateMachine() : super(InitialState()) {
+    define<InitialState>();
+    define<OtherState>();
+  }
 }
 ```
 
@@ -182,9 +182,9 @@ The builder function takes a `StateDefinitionBuilder` as parameter and should re
 
 ```dart
 define<State>((StateDefinitionBuilder builder) {
-	builder.onEnter((State state) { /* Side effect */ }) 
-	builder.on<Event>((Event event, State state) => NextState()); //transition to NextState
-	return builder;
+  builder.onEnter((State state) { /* Side effect */ }) 
+  builder.on<Event>((Event event, State state) => NextState()); //transition to NextState
+  return builder;
 });
 ```
 
@@ -192,8 +192,8 @@ This syntax is very verbose but hopefully thanks to the dart [cascade](https://d
 
 ```dart
  define<State>(($) => $
-	..onEnter((State state) {}) 
-	..on<Event>((Event event, State state) => NextState());
+  ..onEnter((State state) {}) 
+  ..on<Event>((Event event, State state) => NextState());
 ```
 
 ### Event handlers
@@ -212,17 +212,16 @@ If the returned state is not null, it is considered a transition, and the state 
 **Here an example of three event handlers registered for `InitialState`.**
 ```dart
 class MyStateMachine extends StateMachine<Event, State> {
-	MyStateMachine() : super(InitialState()) {
+  MyStateMachine() : super(InitialState()) {
+    define<InitialState>(($) => $
+      ..on<SomeEvent>((SomeEvent e, InitialState s) => null)
+      ..on<SomeEvent>((SomeEvent e, InitialState s) => SecondState())
+      ..on<OtherEvent>((SomeEvent e, InitialState s) => ThirdState())
+    );
 
-		define<InitialState>(($) => $
-			..on<SomeEvent>((SomeEvent e, InitialState s) => null)
-			..on<SomeEvent>((SomeEvent e, InitialState s) => SecondState())
-			..on<OtherEvent>((SomeEvent e, InitialState s) => ThirdState())
-		);
-
-		define<SecondState>();
-		define<ThirdState>();
-	}
+    define<SecondState>();
+    define<ThirdState>();
+  }
 }
 ```
 ### Side effects
@@ -235,15 +234,15 @@ You can register a side effect for a given state using `StateDefinitionBuilder`'
 
 ```dart
 define<State>((b) => b
-	..onEnter((State state) { /* called when entering State */ })
-	..onChange((State current, State next) { /* called when State data changed */ })
-	..onExit((State state) { /* called when exiting State */ })
+  ..onEnter((State state) { /* called when entering State */ })
+  ..onChange((State current, State next) { /* called when State data changed */ })
+  ..onExit((State state) { /* called when exiting State */ })
 ```
 
 You can give async function as parameter for side effects, but remember they will **not** be awaited.
 ```dart
 define<State>((b) => b
-	..onEnter((State state) async { /* not awaited */ })
+  ..onEnter((State state) async { /* not awaited */ })
 ```
 
 ## Nesting states
@@ -255,8 +254,8 @@ The only restriction you have when defining a nested state is that the child sta
 
 ```dart
 define<WaitingFormSubmission>(($) => $
-	..on<LoginFormSubmitted>(_transitToTryLoggingIn)
-	..define<LoginError>()
+  ..on<LoginFormSubmitted>(_transitToTryLoggingIn)
+  ..define<LoginError>()
 );
 ```
 
@@ -266,15 +265,15 @@ A state can have any number of child states as long their only defined once. Nes
 
 ```dart
 define<Parent>(($) => $
-	..define<Child1>(($) => $
-		..onEnter(...)
-		..onChange(...)
-		..onExit(...)
-		..on<Event1>(...)
-		..define<Child2>(($) => $
-			...
-		)
-	)
+  ..define<Child1>(($) => $
+    ..onEnter(...)
+    ..onChange(...)
+    ..onExit(...)
+    ..on<Event1>(...)
+    ..define<Child2>(($) => $
+      ...
+    )
+  )
 );
 ```
 
