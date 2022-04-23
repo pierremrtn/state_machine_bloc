@@ -49,7 +49,7 @@ State machine's states and transitions are defined using a new method, `define<S
 The following state machine represent a login page's bloc that first wait for user to submit form, then try to log-in using the API and finally change its state to success or error based on API return. Bellow you can see its graph representation and the corresponding code.
 <p align="center">
 <img width="100%" src="https://raw.githubusercontent.com/Pierre2tm/state_machine_bloc/main/docs/assets/readme/simple_login_sm_graph.png" alt="Login state machine graph" />
-<img object-fit="scale-down" src="https://raw.githubusercontent.com/Pierre2tm/state_machine_bloc/main/docs/assets/readme/simple_login_sm_code.png" alt="Login state machine code" />
+<img width="66%" object-fit="scale-down" src="https://raw.githubusercontent.com/Pierre2tm/state_machine_bloc/main/docs/assets/readme/simple_login_sm_code.png" alt="Login state machine code" />
 </p>
 `StateMachine` **is** a `Bloc`, so you could use it in the same way as `Bloc`:
 
