@@ -27,8 +27,7 @@ This package uses a flexible declarative API to conveniently describe simple to 
 * <a href="#when-to-use-statemachine">When to use StateMachine?</a>
 * <a href="#Documentation">Documentation</a>
   * <a href="#The-state-machine">The state machine</a>
-    * <a href="#Events-processing-order">Events processing order</a>
-    * <a href="#Transitions-evaluation">Transitions evaluation</a>
+    * <a href="#Events-concurrency">Events processing order</a>
   * <a href="#Defining-states">Defining states</a>
     * <a href="#Event-handlers">Event handlers</a>
     * <a href="#Side-effects">Side effects</a>
@@ -40,13 +39,13 @@ This package uses a flexible declarative API to conveniently describe simple to 
 * <a href="#Additional-resources">Additional resources</a>
 
 # How to use
-State machines are created by extending `StateMachine`, a new class introduced by this package. `StateMachine` itself inherit from `Bloc` class, meaning states machines created using this package **are** blocs and therefore compatible with the entire bloc's ecosystem.
+State machines are created by extending `StateMachine`, a new class introduced by this package. `StateMachine` itself inherits from `Bloc` class, meaning states machines created using this package **are** blocs and therefore compatible with the entire bloc's ecosystem.
 
-`StateMachine` class as been designed to be as lightweight as possible to avoid interfering with `Bloc` inner behavior. Under the hood, `StateMachine` use the `Bloc`'s `on<Event>` method with a custom event mapper to call your own callbacks based on the state machine's definition you've provided.
+`StateMachine` class has been designed to be as lightweight as possible to avoid interfering with `Bloc` inner behavior. Under the hood, `StateMachine` uses the `Bloc`'s `on<Event>` method with a custom event mapper to call your callbacks based on the state machine's definition you've provided.
 
-State machine's states and transitions are defined using a new method, `define<State>`, witch is similar to `Bloc`'s `on<Event>`. By calling `define<State>`, you registering `State` as part of the machine's set of allowed states. Each state can have its own set of events handlers, lifecycle callbacks and transitions.
+State machine's states and transitions are defined using a new method, `define<State>`, which is similar to `Bloc`'s `on<Event>`. By calling `define<State>`, you register `State` as part of the machine's set of allowed states. Each state can have its own set of events handlers, lifecycle events, and transitions.
 
-The following state machine represent a login page's bloc that first wait for user to submit form, then try to log-in using the API and finally change its state to success or error based on API return. Bellow you can see its graph representation and the corresponding code.
+The following state machine represents a login page's bloc that first wait for the user to submit the form, then try to log in using the API, and finally change its state to success or error based on API return. Bellow, you can see its graph representation and the corresponding code.
 
 <table>
   <tbody>
@@ -77,12 +76,11 @@ BlocBuilder<LoginStateMachine, LoginState>(
 ```
 
 # StateMachine vs Bloc
-StateMachine exposes an opinionated interface built on top of the Bloc foundation, designed to define state machine (formally a [mealy machine](https://en.wikipedia.org/wiki/Mealy_machine)).
-State machines are very close to what bloc do. The main difference resides in the number of states you can have and how events are computed.
+State machines are very close to what bloc already do. The main differences reside in the number of states you can have and how events are computed.
 
-With Bloc, you register a set of event handlers that can emit new states when an event is received. Event handlers are processed no matter the current bloc's state and they can emit as many new states they want as long they inherit from the base `State` class using an `Emitter` object.
+With `Bloc`, you register a set of event handlers that can emit new states when corresponding events are received. Event handlers are processed no matter the current bloc's state and they can emit as many new states they want as long they inherit from the base `State` class.
 
-With StateMachine, you register a set of states, each one with its own set of event handlers. StateMachine can never be in a state that it hasn't been explicitly defined and it will throw an error if you try to. When an event is received, `StateMachine` searches for corresponding events handlers registered for the current state. If no event handler is found, the event is discarded. Handlers can return a state to indicate `StateMachine` should transit to this new state or `null`, to indicate no transition should happen. They are processed sequentially until one of them returns a new state or they have all been evaluated.
+With StateMachine, you register a set of states, each one with its own set of event handlers. StateMachine can never be in a state that it hasn't been explicitly defined and it will throw an error if you try to. When an event is received, `StateMachine` searches for corresponding events handlers registered for the current state. If no event handler is found, the event is discarded. Handlers can return a state to indicate `StateMachine` should transit to this new state or `null`, to indicate no transition should happen. Event handlers are processed sequentially until one of them returns a new state or they have all been evaluated.
 
 These differences in design bring some benefits as well some disadvantages:
 
@@ -98,26 +96,24 @@ These differences in design bring some benefits as well some disadvantages:
 # When to use `StateMachine`?
 Generally, it's recommended to use `StateMachine` where you can because it will make your code clean and robust. 
 
-StateMachine is well suited if you can identify a set of states and easily identify what event belongs to what state. If you need to use complex event transformers or if states are too intricated so it's difficult to distinguish them, then you should probably use a `Bloc`.
+StateMachine is well suited if you can identify a set of states and easily identify what event belongs to what state. If you need to use complex event transformers or if states are too intricated so it's difficult to distinguish them, you should probably use a `Bloc`.
 
 # Documentation
 ## The state machine
-The state machine uses `Bloc`'s `on<Event>` method under the hood to register a custom event dispatcher that will in turn call your methods and callbacks.
+The state machine uses `Bloc`'s `on<Event>` method under the hood with a custom event dispatcher that will in turn call your methods and callbacks.
 
 State machine's states should be defined with the `StateMachine`'s `define<State>` methods inside the constructor. You should never try to transit to a state that hasn't been explicitly defined. If the state machine detects a transition to an undefined state, it will throw an error.
 
 > 🚨 You should **NEVER** use `on<Event>` method inside a StateMachine.
 
-`define`'s state definition builder function takes a `StateDefinitionBuilder` as parameter and should return it. `StateDefinitionBuilder` exposes methods to register event handlers and side effects.
+Each state has its own set of event handlers and side effects callbacks:
+* **Event handlers** react to an incoming event and can emit the next machine's state. We call this a _transition_.
+* **Side effects** are callback functions called depending on state lifecycle. You have access to three different side effects: `onEnter`, `onExit`, and `onChange`.
 
-**Event handlers** react to an incoming event and can emit the next machine's state. We call this a _transition_.
+When an event is received, the state machine will first search for the actual state definition. Each current state's event handler that matches the received event type will be evaluated. If multiple events handlers match the event type, they will be evaluated in their **definition order**. As soon as an event handler returns a non-null state (we call this _entering a transition_), the state machine stops evaluating events handlers and transit to the new state immediately.
 
-**Side effects** are callback functions called depending on state lifecycle. You have access to three different side effects: `onEnter`, `onExit`, and `onChange`.
-
-### Events processing order
-By default, incoming events are processed immediately and every other event received a dropped until the current event finished being processed. Since transitions are synced, it will only drop additional events received in the same event-loop iteration.
-
-`StateMachine` use `droppable` event transformer from `BlocConcurrency` for this purpose. You can override this behavior by passing a `transformer` to the `StateMachine`'s constructor.
+### Events concurrency
+By default, if multiple incoming events are received during **the same event loop**, the first one is processed and every other is dropped. You can override this behavior by passing a `transformer` to the `StateMachine`'s constructor.
 
 ```dart
 class MyStateMachine extends StateMachine<Event, State> {
@@ -125,15 +121,8 @@ class MyStateMachine extends StateMachine<Event, State> {
 }
 ```
 
-### Transitions evaluation
-When an event is received, the state machine will first search for the actual state definition. If the actual state is a child state, parent(s) state(s) will first be evaluated, meaning if a parent enters a transition, children will not be evaluated. Once the parent finished being evaluated, the child's state will in turn be evaluated, and so on.
-
-If a state registers more than one handler for a given event, they are evaluated sequentially, in their definition order. As soon as an event handler enters a transition, the state machine stops evaluating handlers and transit to the new state.
-
 ## Defining states
-State machine states are defined using `StateMachine`'s `define<State>` method inside the constructor. Define should be called ones for each available state.
-
-Every defined state for a given `StateMachine<Event, State>` should inherit from `<State>` base class and should only be defined once.
+State machine states are defined using `StateMachine`'s `define<State>` method inside the constructor. Define should be called ones for each available state. Every defined state for a given `StateMachine<Event, State>` should inherit from `<State>` base class and should only be defined once.
 
 ```dart
 class MyStateMachine extends StateMachine<Event, State> {
@@ -146,7 +135,7 @@ class MyStateMachine extends StateMachine<Event, State> {
 
 `define<State>` method takes an optional builder function as parameter that could be used to register event handlers and side effect callbacks for the defined state.
 
-The builder function takes a `StateDefinitionBuilder` as parameter and should return it. `StateDefinitionBuilder` exposes methods needed to register transitions and callbacks.
+The builder function takes a `StateDefinitionBuilder` as parameter and should return it. `StateDefinitionBuilder` exposes methods necessary to register the defined state's transitions and side effects callbacks.
 
 ```dart
 define<State>((StateDefinitionBuilder builder) {
@@ -157,7 +146,6 @@ define<State>((StateDefinitionBuilder builder) {
 ```
 
 This syntax is very verbose but hopefully thanks to the dart [cascade](https://dart.dev/guides/language/language-tour#cascade-notation) notation you could write it like so:
-
 ```dart
  define<State>(($) => $
   ..onEnter((State state) {}) 
@@ -171,13 +159,13 @@ Event handlers have the following signature:
 ```dart
 State? Function(DefinedEvent, DefinedState);
 ```
-If the returned state is not null, it is considered a transition, and the state machine transit to this new state. Otherwise, no transition append and next event handlers are evaluated.
+If the returned state is not null, it is considered a _transition_ and the state machine will transit immediately to this new state. Otherwise, no transition append, and the next event handler is evaluated.
 
 > 🚨 Event handlers are only evaluated if the event is received while the state machine is in the state for which the handler is registered.
 
 > 🚨 **If a new state is returned from a transition where `newState == state`, the new state will be ignored**. If you're using a state that contains data, make sure you've implemented `==` operator. You could use `freezed` or `equatable` packages for this purpose.
 
-**Here an example of three event handlers registered for `InitialState`.**
+**Example of three event handlers registered for `InitialState`.**
 ```dart
 class MyStateMachine extends StateMachine<Event, State> {
   MyStateMachine() : super(InitialState()) {
@@ -195,8 +183,8 @@ class MyStateMachine extends StateMachine<Event, State> {
 ### Side effects
 Side effects are callback functions that you can register to react to the state's lifecycle events. They are generally a good place to request APIs or start async computations. 
 You have access to 3 different side effects:
-**onEnter** is called when State Machine enters a state. If `State` is the initial `StateMachine`'s state, onEnter will be called during state machine initialization.
-**onChange** is called when a state transitions to itself. `onChange` **is not** called if `state == nextState` or when the state machine enters the state for the first time.
+**onEnter** is called when State Machine enters a state. If `State` is the initial `StateMachine`'s state, `onEnter` will be called during state machine initialization.
+**onChange** is called when a state transitions to itself. `onChange` **is not** called if `state == nextState` or when the state machine enters this state for the first time.
 **onExit** is called before State Machine's exit a state.
 You can register a side effect for a given state using `StateDefinitionBuilder`'s `onEnter`, `onChange` or `onExit` methods.
 
@@ -216,7 +204,7 @@ define<State>((b) => b
 ## Nesting states
 `StateMachine` supports state nesting. This is convenient for defining common event handlers or side effects for a group of states.
 You can define a nested state using `StateDefinitionBuilder`'s `define<ChildState>` method. This method behaves the same way as top-level define calls.
-You could register event handlers and side effects for the nested state like a normal state.
+You could register event handlers and side effects for the nested state like any normal state.
 
 The only restriction you have when defining a nested state is that the child state should be a sub-class of the parent state.
 
@@ -229,7 +217,7 @@ define<WaitingFormSubmission>(($) => $
 
 In the example above, the `LoginError` state is a child state of `WaitingFormSubmission`. `WaitingFormSubmission` and `LoginError` are both valid states that can transit to the `TryLoginIn` state, but `LoginError` carries an additional error the UI will display.
 
-A state can have any number of child states as long their only defined once. Nested states have access to a `StateDefinitionBuilder` like normal states so they can register an event handler, side effect, or in turn, nested states.
+A state can have any number of child states as long they are only defined once. Nested states have access to a `StateDefinitionBuilder` like normal states so they can register their event handlers, side effects, or in turn, nested states.
 
 ```dart
 define<Parent>(($) => $
@@ -246,11 +234,11 @@ define<Parent>(($) => $
 ```
 
 ### Nested states event handlers
-When an event is received, the state machine searches the current state definition. If it's a nested state, the state machine will evaluate each parent state, from the higher ones in the hierarchy to the lowest ones before evaluating the current state. That way, if a parent state event handler handles an event and returns a new state, the child's event handlers will not be evaluated.
+When an event is received, the state machine searches the current state definition. If it's a nested state, the state machine will evaluate each parent state, from the higher ones in the hierarchy to the lowest ones before evaluating the current state. If a parent state event handler handles an event and returns a new state, the child's event handlers will not be evaluated.
 
 ### Nested state side effects
 Parent's side effects can be triggered when the state machine enters, move or exit from one of its child's state.
-The table below describes how side effects are triggered for parent and child states.
+The table below describes how side effects are triggered for the parent and child states.
 
 > 🚨 A state is considered a child as long as it's below the parent state in the state hierarchy.
 
@@ -261,12 +249,12 @@ The table below describes how side effects are triggered for parent and child st
 | onExit   | Called when next state isn't this state or one of its children                        | Called when next state isn't this state |
 
 # Examples
-You can find usage examples in the repository's [example folder](https://github.com/Pierre2tm/state_machine_bloc/tree/main/examples). These examples are re-implementations of bloc's examples using a state machine. New examples will be added over time.
+You can find usage examples in the repository's [example folder](https://github.com/Pierre2tm/state_machine_bloc/tree/main/examples). These examples are re-implementations of bloc's examples using state machines. New examples will be added over time.
 * [Timer](https://github.com/Pierre2tm/state_machine_bloc/tree/main/examples/flutter_timer_state_machine)
 * [Infinite list](https://github.com/Pierre2tm/state_machine_bloc/tree/main/examples/infinite_list_state_machine)
 
 # Issues and feature requests
-If you find a bug or want to see an additional feature, please fill on the issue on [github](https://github.com/Pierre2tm/state_machine_bloc/issues/new).
+If you find a bug or want to see an additional feature, please open an issue on [github](https://github.com/Pierre2tm/state_machine_bloc/issues/new).
 
 ## Additional resources
 * [You are managing state? Think twice.](https://krasimirtsonev.com/blog/article/managing-state-in-javascript-with-state-machines-stent)
