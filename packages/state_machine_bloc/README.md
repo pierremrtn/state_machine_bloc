@@ -49,15 +49,53 @@ State machine's states and transitions are defined using a new method, `define<S
 The following state machine represent a login page bloc that first wait for user to submit form, then try to log-in user using the API and finally change its state to success or error based on API return. On the right you can see the state machine graph and on the left the corresponding code implementation.
 
 
+<img width="100%" src="https://raw.githubusercontent.com/Pierre2tm/state_machine_bloc/main/docs/assets/readme/simple_login_sm_graph.png" alt="State machine Bloc" />
 
-<table>
-<tr>
-  <td width="66%" margin="auto">
-    <img src="https://raw.githubusercontent.com/Pierre2tm/state_machine_bloc/main/docs/assets/readme/simple_login_sm_code.png" alt="State machine Bloc" />
-  </td>
-  <td width="33%"><img src="https://raw.githubusercontent.com/Pierre2tm/state_machine_bloc/main/docs/assets/readme/simple_login_sm_graph.png" alt="State machine Bloc" /></td>
-</tr>
-</table>
+```dart
+import 'package:state_machine_bloc/state_machine_bloc.dart';
+
+part 'login_event.dart';
+part 'login_state.dart';
+
+class LoginStateMachine extends StateMachine<LoginEvent, LoginState> {
+  LoginStateMachine({
+    required this.userRepository,
+  }) : super(WaitingFormSubmission()) {
+    define<WaitingFormSubmission>(
+        ($) => $..on<LoginFormSubmitted>(_toTryLoggingIn));
+
+    define<TryLoggingIn>(($) => $
+      ..onEnter(_login)
+      ..on<LoginSucceeded>(_toSuccess)
+      ..on<LoginFailed>(_toError));
+
+    define<LoginSuccess>();
+    define<LoginError>();
+  }
+
+  final UserRepository userRepository;
+
+  TryLoggingIn _toTryLoggingIn(FormSubmitted event, state) =>
+      TryLoggingIn(email: event.email, password: event.password);
+
+  LoginSucceed _toSuccess(e, s) => LoginSucceed();
+
+  LoginError _toError(LoginFailed event, state) => LoginError(event.error);
+
+  /// Use state's data to try login-in using the API
+  Future<void> _login(TryLoggingIn state) async {
+    try {
+      await userRepository.login(
+        email: state.email,
+        password: state.password,
+      );
+      add(LoginSucceeded());
+    } catch (e) {
+      add(LoginFailed(e.toString()));
+    }
+  }
+}
+```
 
 `StateMachine` **is** a `Bloc`, so you could use it in the same way as `Bloc`:
 
