@@ -47,9 +47,9 @@ State machines are created by extending `StateMachine`, a new class introduced b
 State machine's states and transitions are defined using a new method, `define<State>`, witch is similar to `Bloc`'s `on<Event>`. By calling `define<State>`, you registering `State` as part of the machine's set of allowed states. Each state can have its own set of events handlers, lifecycle callbacks and transitions.
 
 The following state machine represent a login page bloc that first wait for user to submit form, then try to log-in user using the API and finally change its state to success or error based on API return. On the right you can see the state machine graph and on the left the corresponding code implementation.
-
-
+<p align="center">
 <img width="100%" src="https://raw.githubusercontent.com/Pierre2tm/state_machine_bloc/main/docs/assets/readme/simple_login_sm_graph.png" alt="State machine Bloc" />
+</p>
 
 ```dart
 import 'package:state_machine_bloc/state_machine_bloc.dart';
