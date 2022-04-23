@@ -51,10 +51,10 @@ The following state machine represent a login page's bloc that first wait for us
 <table>
   <tbody>
     <tr>
-      <td width="66%">
+      <td width="60%">
         <img alt="Login state machine code" src="https://raw.githubusercontent.com/Pierre2tm/state_machine_bloc/main/docs/assets/readme/simple_login_sm_code.png" />
       </td>
-      <td width="33%">
+      <td width="40%">
         <img alt="Login state machine graph" src="https://raw.githubusercontent.com/Pierre2tm/state_machine_bloc/main/docs/assets/readme/simple_login_sm_graph_horizontal.png"/>
       </td>
     </tr>
