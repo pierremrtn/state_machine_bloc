@@ -48,13 +48,13 @@ State machine's states and transitions are defined using a new method, `define<S
 
 The following state machine represent a login page's bloc that first wait for user to submit form, then try to log-in using the API and finally change its state to success or error based on API return. Bellow you can see its graph representation and the corresponding code.
 
-<table style="border: 0; padding: 0;">
-  <tbody style="border: 0; padding: 0;">
-    <tr style="border: 0; padding: 0;">
-      <td width="60%" style="border: 0; padding: 0;">
+<table>
+  <tbody>
+    <tr>
+      <td width="60%">
         <img alt="Login state machine code" src="https://raw.githubusercontent.com/Pierre2tm/state_machine_bloc/main/docs/assets/readme/simple_login_sm_code.png" />
       </td>
-      <td width="40%" style="border: 0; padding: 0;">
+      <td width="40%">
         <img alt="Login state machine graph" src="https://raw.githubusercontent.com/Pierre2tm/state_machine_bloc/main/docs/assets/readme/simple_login_sm_graph_horizontal.png"/>
       </td>
     </tr>
