@@ -228,9 +228,9 @@ define<Parent>(($) => $
     ..on<Event1>(...)
     ..define<Child2>(($) => $
       ...
-    )
-  )
-);
+    ) // Child2
+  ) // Child1
+); // Parent
 ```
 
 ### Nested states event handlers
