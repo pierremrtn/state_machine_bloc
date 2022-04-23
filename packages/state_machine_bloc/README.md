@@ -1,5 +1,5 @@
 <p align="center">
-<img src="https://raw.githubusercontent.com/Pierre2tm/state_machine_bloc/master/docs/assets/state_machine_bloc_logo_full.png" height="100" alt="State machine Bloc" />
+<img src="https://raw.githubusercontent.com/Pierre2tm/state_machine_bloc/main/docs/assets/state_machine_bloc_logo_full.png" height="100" alt="State machine Bloc" />
 </p>
 
 <p align="center">
@@ -10,17 +10,16 @@
 </p>
 <p align="center">⚠️ state_machine_bloc is not an official bloc package ⚠️</p>
 
-`state_machine_bloc` exports a `StateMachine`, a lightweight class that inherits from `Bloc` and exposes convenient methods to describe state machines.
-`StateMachine` **is** a `Bloc`, meaning that you can use it in the same way as a regular bloc and it's compatible with the rest of the ecosystem.
+state_machine_bloc is an extension to the bloc state management library which provide a utility class to create blocs that behave like finite state machines. Event routing and filtering are done under the hood for you so you can focus on building state machine logic.
 
-The package uses a flexible declarative API to conveniently describe simple to complex state machines. `StateMachine` route and filter events for you so you can focus on building app logic.
+This package uses a flexible declarative API to conveniently describe simple to complex state machines.
 
-**`state_machine_bloc` enables you to:**
-* ✅ Easily define state machine's states and their transitions
-* ✅ Store different data for each state
-* ✅ React to states lifecycle events
-* ✅ Apply guard conditions on transitions
-* ✅ Nest states without depth limit
+**state_machine_bloc supports:**
+* ✅ Easy state machine definition
+* ✅ Shared or per-state data
+* ✅ States lifecycle events
+* ✅ Guard conditions on transitions
+* ✅ Nested states without depth limit
 
 # Index
 * <a href="#How-to-use">How to use</a>
@@ -41,77 +40,29 @@ The package uses a flexible declarative API to conveniently describe simple to c
 * <a href="#Additional-resources">Additional resources</a>
 
 # How to use
-`StateMachine` exposes a `define<State>` method, similar to `Bloc`'s `on<Event>`, used to define one of the state machine's possible states. It takes a builder function as parameter that lets you register events handlers and side effects for the defined state.
+State machines are created by extending `StateMachine`, a new class introduced by this package. `StateMachine` itself inherit from `Bloc` class, meaning states machines created using this package **are** blocs and therefore compatible with the entire bloc's ecosystem.
 
-> 🚨 You should **NEVER** use `on<Event>` method inside a StateMachine.
+`StateMachine` class as been designed to be as lightweight as possible to avoid interfering with `Bloc` inner behavior. Under the hood, `StateMachine` use the `Bloc`'s `on<Event>` method with a custom event mapper to call your own callbacks based on the state machine's definition you've provided.
 
-`define`'s state definition builder function takes a `StateDefinitionBuilder` as parameter and should return it. `StateDefinitionBuilder` exposes methods to register event handlers and side effects.
+State machine's states and transitions are defined using a new method, `define<State>`, witch is similar to `Bloc`'s `on<Event>`. By calling `define<State>`, you registering `State` as part of the machine's set of allowed states. Each state can have its own set of events handlers, lifecycle callbacks and transitions.
 
-**Event handlers** react to an incoming event and can emit the next machine's state. We call this a _transition_.
+The following state machine represent a login page bloc that first wait for user to submit form, then try to log-in user using the API and finally change its state to success or error based on API return. On the right you can see the state machine graph and on the left the corresponding code implementation.
 
-**Side effects** are callback functions called depending on state lifecycle. You have access to three different side effects: `onEnter`, `onExit`, and `onChange`.
-
-**Example of a login-in form state machine:**
-```dart
-import 'package:state_machine_bloc/state_machine_bloc.dart';
-
-part 'login_event.dart';
-part 'login_state.dart';
-
-class LoginStateMachine extends StateMachine<LoginEvent, LoginState> {
-  LoginStateMachine({
-    required this.userRepository,
-  }) : super(WaitingFormSubmission()) {
-    
-    define<WaitingFormSubmission>(($) => $
-      ..on<LoginFormSubmitted>(_toTryLoggingIn));
-
-    define<TryLoggingIn>(($) => $
-      ..onEnter(_login)
-      ..on<LoginSucceeded>(_toSuccess)
-      ..on<LoginFailed>(_toError));
-
-    define<LoginSuccess>();
-    define<LoginError>();
-  }
-
-  final UserRepository userRepository;
-
-  TryLoggingIn _toTryLoggingIn(FormSubmitted event, state)
-    => TryLoggingIn(email: event.email, password: event.password);
-
-  LoginSucceed _toSuccess(e, s)
-    => LoginSucceed();
-
-  LoginError _toError(LoginFailed event, state)
-    => LoginError(event.error);
-
-  /// Use state's data to try login-in using the API
-  Future<void> _login(TryLoggingIn state) async {
-    try {
-      await userRepository.login(
-        email: state.email,
-        password: state.password,
-      );
-      add(LoginSucceeded());
-    } catch (e) {
-      add(LoginFailed(e.toString()));
-    }
-  }
-}
-```
+|code                                                |graph                                                 |
+|----------------------------------------------------|------------------------------------------------------|
+|![code](docs/assets/readme/simple_login_sm_code.png)|![graph](docs/assets/readme/simple_login_sm_graph.png)|
 
 `StateMachine` **is** a `Bloc`, so you could use it in the same way as `Bloc`:
 
 ```dart
 BlocProvider(
-  create: (_) => MyStateMachine(),
+  create: (_) => LoginStateMachine(),
   child: ...,
 );
 
 ...
 
-BlocBuilder<MyStateMachine, MyStateMachineState>(  
+BlocBuilder<LoginStateMachine, LoginState>(  
   builder: ...,
 );
 ```
@@ -145,6 +96,14 @@ StateMachine is well suited if you can identify a set of states and easily ident
 The state machine uses `Bloc`'s `on<Event>` method under the hood to register a custom event dispatcher that will in turn call your methods and callbacks.
 
 State machine's states should be defined with the `StateMachine`'s `define<State>` methods inside the constructor. You should never try to transit to a state that hasn't been explicitly defined. If the state machine detects a transition to an undefined state, it will throw an error.
+
+> 🚨 You should **NEVER** use `on<Event>` method inside a StateMachine.
+
+`define`'s state definition builder function takes a `StateDefinitionBuilder` as parameter and should return it. `StateDefinitionBuilder` exposes methods to register event handlers and side effects.
+
+**Event handlers** react to an incoming event and can emit the next machine's state. We call this a _transition_.
+
+**Side effects** are callback functions called depending on state lifecycle. You have access to three different side effects: `onEnter`, `onExit`, and `onChange`.
 
 ### Events processing order
 By default, incoming events are processed immediately and every other event received a dropped until the current event finished being processed. Since transitions are synced, it will only drop additional events received in the same event-loop iteration.
