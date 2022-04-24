@@ -1,3 +1,7 @@
+## 0.0.1-dev.4
+* Improved documentation
+* Add doc-comments
+
 ## 0.0.1-dev.3
 * `StateMachine` now use `droppable` event transformer instead of `sequential`
 * Transition are now synchronous.
