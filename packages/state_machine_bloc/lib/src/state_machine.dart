@@ -7,6 +7,48 @@ part 'state_definition_builder.dart';
 
 /// {@template state_machine}
 /// A Bloc that provides facilities methods to create state machines
+///
+/// The state machine uses `Bloc`'s `on<Event>` method under the hood with a
+/// custom event dispatcher that will in turn call your methods and callbacks.
+///
+/// State machine's states should be defined with the
+/// `StateMachine`'s `define<State>` methods inside the constructor. You should
+/// never try to transit to a state that hasn't been explicitly defined.
+/// If the state machine detects a transition to an undefined state,
+/// it will throw an error.
+///
+/// Each state has its own set of event handlers and side effects callbacks:
+/// * **Event handlers** react to an incoming event and can emit the next
+///  machine's state. We call this a _transition_.
+/// * **Side effects** are callback functions called depending on state
+///  lifecycle. You have access to three different side effects: `onEnter`, `onExit`, and `onChange`.
+///
+/// When an event is received, the state machine will first search
+/// for the actual state definition. Each current state's event handler
+/// that matches the received event type will be evaluated.
+/// If multiple events handlers match the event type, they will be evaluated
+/// in their **definition order**. As soon as an event handler returns
+/// a non-null state (we call this _entering a transition_), the state
+/// machine stops evaluating events handlers and transit to the new
+/// state immediately.
+///
+/// ```dart
+/// class MyStateMachine extends StateMachine<Event, State> {
+/// MyStateMachine() : super(InitialState()) {
+///    define<InitialState>(($) => $
+///      ..onEnter((InitialState state) { /** ... **/ })
+///      ..onChange((InitialState state, InitialState nextState) { /** ... **/ })
+///      ..onExit((InitialState state) { /** ... **/ })
+///      ..on<SomeEvent>((SomeEvent event, InitialState state) => OtherState())
+///    );
+///    define<OtherState>();
+///   }
+/// }
+/// ```
+///
+/// See also:
+///
+/// * [Bloc] class for more information about general blocs behavior
 /// {@endtemplate state_machine}
 abstract class StateMachine<Event, State> extends Bloc<Event, State> {
   /// {@macro state_machine}
@@ -51,9 +93,10 @@ abstract class StateMachine<Event, State> extends Bloc<Event, State> {
   ///   }
   /// }
   /// ```
+  ///
   /// See also:
   ///
-  /// * [StateDefinitionBuilder] for more information about defining states
+  /// * [StateDefinitionBuilder] for more information about defining states.
   void define<DefinedState extends State>([
     StateDefinitionBuilder<Event, State, DefinedState> Function(
       StateDefinitionBuilder<Event, State, DefinedState>,
