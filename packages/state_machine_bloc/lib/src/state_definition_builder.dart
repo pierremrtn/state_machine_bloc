@@ -163,10 +163,10 @@ class StateDefinitionBuilder<Event, State, DefinedState extends State> {
         ),
       );
 
-  /// Define a nested state.
+  /// Register [NestedState] as one of [DefinedState]'s nested states.
   ///
   /// Works the same way as top-level define calls.
-  /// [builder] function that takes an [StateDefinitionBuilder] object as a parameter
+  /// The [definitionBuilder] function takes an [StateDefinitionBuilder] object as a parameter
   /// and should return it. [StateDefinitionBuilder] is used to register event
   /// handlers and side effects for the defined [NestedState].
   ///
@@ -198,14 +198,18 @@ class StateDefinitionBuilder<Event, State, DefinedState extends State> {
   ///   ) // Child1
   /// );
   /// ```
+  ///
+  /// See also:
+  ///
+  /// * [StateDefinitionBuilder] for more information about defining states.
   void define<NestedState extends DefinedState>([
     StateDefinitionBuilder<Event, State, NestedState> Function(
             StateDefinitionBuilder<Event, State, NestedState>)?
-        builder,
+        definitionBuilder,
   ]) {
     late _StateDefinition definition;
-    if (builder != null) {
-      definition = builder
+    if (definitionBuilder != null) {
+      definition = definitionBuilder
           .call(StateDefinitionBuilder<Event, State, NestedState>())
           ._build();
     } else {
