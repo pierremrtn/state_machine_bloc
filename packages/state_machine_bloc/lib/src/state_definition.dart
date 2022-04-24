@@ -19,15 +19,15 @@ class _StateEventHandler<SuperEvent, SuperState,
   const _StateEventHandler({
     required this.isType,
     required this.type,
-    required this.builder,
+    required this.transition,
   });
   final bool Function(dynamic value) isType;
   final Type type;
 
-  final EventTransition<DefinedEvent, SuperState, DefinedState> builder;
+  final EventTransition<DefinedEvent, SuperState, DefinedState> transition;
 
   SuperState? handle(SuperEvent e, SuperState s) =>
-      builder(e as DefinedEvent, s as DefinedState);
+      transition(e as DefinedEvent, s as DefinedState);
 }
 
 /// Definition of a state
