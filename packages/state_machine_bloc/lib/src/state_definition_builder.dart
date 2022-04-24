@@ -214,7 +214,7 @@ class StateDefinitionBuilder<Event, State, DefinedState extends State> {
 
     assert(() {
       if (_definedStates.contains(NestedState)) {
-        throw "$NestedState defined multiple times. State should only be defined once.";
+        throw "$NestedState has been defined multiple times. States should only be defined once.";
       }
       _definedStates.add(NestedState);
       return true;
