@@ -27,7 +27,7 @@ This package uses a flexible declarative API to conveniently describe simple to 
 * <a href="#when-to-use-statemachine">When to use StateMachine?</a>
 * <a href="#documentation">Documentation</a>
   * <a href="#the-state-machine">The state machine</a>
-    * <a href="#events-concurrency">Events processing order</a>
+    * <a href="#events-concurrency">Events concurrency</a>
   * <a href="#defining-states">Defining states</a>
     * <a href="#event-handlers">Event handlers</a>
     * <a href="#side-effects">Side effects</a>
