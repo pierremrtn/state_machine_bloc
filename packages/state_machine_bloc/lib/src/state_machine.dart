@@ -6,15 +6,15 @@ part 'state_definition.dart';
 part 'state_definition_builder.dart';
 
 /// {@template state_machine}
-/// A wrapper around Bloc to facilitate the creation of state machines
+/// A Bloc that provides facilities methods to create state machines
 /// {@endtemplate state_machine}
 abstract class StateMachine<Event, State> extends Bloc<Event, State> {
+  /// {@macro state_machine}
   StateMachine(
     State initial, {
 
-    /// Used to change how state machine process events. The default event transformer is [droppable] by default,
-    /// meaning it process only one event and ignore (drop) any new events until the current event is done.
-    /// Since transitions are sync, it only drop events received in the same event-loop iteration.
+    /// Used to change how state machine process incoming events. The default event transformer is [droppable] by default,
+    /// meaning it process only one event and ignore (drop) any new events until the next event-loop iteration.
     EventTransformer<Event>? transformer,
   }) : super(initial) {
     super.on<Event>(_mapEventToState, transformer: transformer ?? droppable());
@@ -23,12 +23,37 @@ abstract class StateMachine<Event, State> extends Bloc<Event, State> {
   final List<Type> _definedStates = [];
   final List<_StateDefinition> _stateDefinitions = [];
 
-  /// define a state machine's state
+  /// Register [DefinedState] as one of the allowed machine's states.
   ///
-  /// [definitionBuilder] is a function that takes a [StateDefinitionBuilder]
-  /// as parameter and should return it. The [StateDefinitionBuilder] is used
-  /// to register events handlers and side effect functions for this specific
-  /// state.
+  /// The define method should be called once for allowed state
+  /// **inside the class constructor**. Defined states should
+  /// always be sub-classes of the [State] class.
+  ///
+  /// The define method takes an optional [definitionBuilder] function as
+  /// parameter that give the opportunity to register events handler and
+  /// transitions for the [DefinedState] thanks to a [StateDefinitionBuilder]
+  /// passed as parameter to the builder function.
+  /// The [StateDefinitionBuilder] provides all necessary methods to registers
+  /// event handlers, side effects and nested states. The [definitionBuilder]
+  /// should call needed [StateDefinitionBuilder]'s object methods to describe
+  /// the [DefinedState] and then return it.
+  ///
+  /// ```dart
+  /// class MyStateMachine extends StateMachine<Event, State> {
+  /// MyStateMachine() : super(InitialState()) {
+  ///    define<InitialState>(($) => $
+  ///      ..onEnter((InitialState state) { /** ... **/ })
+  ///      ..onChange((InitialState state, InitialState nextState) { /** ... **/ })
+  ///      ..onExit((InitialState state) { /** ... **/ })
+  ///      ..on<SomeEvent>((SomeEvent event, InitialState state) => OtherState())
+  ///    );
+  ///    define<OtherState>();
+  ///   }
+  /// }
+  /// ```
+  /// See also:
+  ///
+  /// * [StateDefinitionBuilder] for more information about defining states
   void define<DefinedState extends State>([
     StateDefinitionBuilder<Event, State, DefinedState> Function(
       StateDefinitionBuilder<Event, State, DefinedState>,
@@ -59,8 +84,8 @@ abstract class StateMachine<Event, State> extends Bloc<Event, State> {
     }
   }
 
-  /// [on] function should not be used inside [StateMachine].
-  /// Use [define] instead.
+  /// [on] function should never be used inside [StateMachine].
+  /// Use [define] method instead.
   @nonVirtual
   @protected
   @override
