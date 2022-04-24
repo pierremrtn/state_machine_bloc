@@ -10,7 +10,7 @@
 </p>
 <p align="center">⚠️ state_machine_bloc is not an official bloc package ⚠️</p>
 
-state_machine_bloc is an extension to the bloc state management library which provide a utility class to create blocs that behave like finite state machines. Event routing and filtering are done under the hood for you so you can focus on building state machine logic.
+state_machine_bloc is an extension to the bloc state management library which provide a `StateMachine` utility class to create finite-states machines based blocs. Event routing and filtering are done under the hood for you so you can focus on building state machine logic.
 
 This package uses a flexible declarative API to conveniently describe simple to complex state machines.
 
