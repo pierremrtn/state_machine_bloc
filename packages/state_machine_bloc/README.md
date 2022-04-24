@@ -22,21 +22,21 @@ This package uses a flexible declarative API to conveniently describe simple to 
 * ✅ Nested states without depth limit
 
 # Index
-* <a href="#How-to-use">How to use</a>
-* <a href="#StateMachine-vs-Bloc">StateMachine vs Bloc</a>
+* <a href="#how-to-use">How to use</a>
+* <a href="#statemachine-vs-Bloc">StateMachine vs Bloc</a>
 * <a href="#when-to-use-statemachine">When to use StateMachine?</a>
-* <a href="#Documentation">Documentation</a>
-  * <a href="#The-state-machine">The state machine</a>
-    * <a href="#Events-concurrency">Events processing order</a>
-  * <a href="#Defining-states">Defining states</a>
-    * <a href="#Event-handlers">Event handlers</a>
-    * <a href="#Side-effects">Side effects</a>
-  * <a href="#Nesting-states">Nesting states</a>
-    * <a href="#Nested-states-event-handlers">Nested states event handlers</a>
-    * <a href="#Nested-state-side-effects">Nested state side effects</a>
-* <a href="#Examples">Examples</a>
-* <a href="#Issues-and-feature-requests">Issues and feature requests</a>
-* <a href="#Additional-resources">Additional resources</a>
+* <a href="#documentation">Documentation</a>
+  * <a href="#the-state-machine">The state machine</a>
+    * <a href="#events-concurrency">Events processing order</a>
+  * <a href="#defining-states">Defining states</a>
+    * <a href="#event-handlers">Event handlers</a>
+    * <a href="#side-effects">Side effects</a>
+  * <a href="#nesting-states">Nesting states</a>
+    * <a href="#nested-states-event-handlers">Nested states event handlers</a>
+    * <a href="#nested-state-side-effects">Nested state side effects</a>
+* <a href="#examples">Examples</a>
+* <a href="#issues-and-feature-requests">Issues and feature requests</a>
+* <a href="#additional-resources">Additional resources</a>
 
 # How to use
 State machines are created by extending `StateMachine`, a new class introduced by this package. `StateMachine` itself inherits from `Bloc` class, meaning states machines created using this package **are** blocs and therefore compatible with the entire bloc's ecosystem.
