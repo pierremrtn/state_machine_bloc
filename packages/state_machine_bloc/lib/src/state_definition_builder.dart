@@ -2,8 +2,8 @@ part of 'state_machine.dart';
 
 /// Object used to describe state machine's states
 ///
-/// [StateDefinitionBuilder] provides methods to register state's event handlers.
-/// and side effect as well nested states.
+/// [StateDefinitionBuilder] provides methods to register defined state's event handlers.
+/// and side effects as well nested states.
 /// * [on] method is used to register event handlers.
 /// * [onEnter], [onChange], [onExit] methods are used to register side effects.
 /// * [define] method is used to defined nested state.
@@ -29,9 +29,9 @@ class StateDefinitionBuilder<Event, State, DefinedState extends State> {
   ///
   /// [onEnter] should only be called once per unique state.
   ///
-  /// [onEnterCallback] will be called when the state machine enter
+  /// [onEnterCallback] will be called when the state machine enters
   /// [DefinedState] or one of its nested states **for the first** time.
-  /// It will not be called if previous state is [DefinedState] or one of its
+  /// It will not be called if the previous state is [DefinedState] or one of its
   /// nested states.
   ///
   /// [onEnterCallback] callback could be async but **will not** be awaited.
@@ -62,7 +62,7 @@ class StateDefinitionBuilder<Event, State, DefinedState extends State> {
   /// [onExit] should only be called once per unique state.
   ///
   /// [onExitCallback] will be called when the state machine exit [DefinedState].
-  /// It will not be called if next state is one of [DefinedState]'s nested states.
+  /// It will not be called if the next state is one of [DefinedState]'s nested states.
   ///
   /// [onExitCallback] callback could be async but **will not** be awaited.
   ///
@@ -86,7 +86,7 @@ class StateDefinitionBuilder<Event, State, DefinedState extends State> {
     _onExit = onExitCallback;
   }
 
-  /// Register [onChangeCallback] function as onChange side effect for [DefinedState]
+  /// Register [onChangeCallback] function as onChange side effect for [DefinedState].
   ///
   /// [onChange] should only be called once per unique state.
   ///
@@ -99,7 +99,7 @@ class StateDefinitionBuilder<Event, State, DefinedState extends State> {
   ///
   /// 🚨 State machine discard any state update where `currentState == nextState`,
   /// so make sure you've implemented [operator==] for your state class,
-  /// otherwise onChange will not be called.
+  /// otherwise, onChange will not be called.
   ///
   /// [onChangeCallback] callback could be async but **will not** be awaited.
   ///
@@ -126,14 +126,14 @@ class StateDefinitionBuilder<Event, State, DefinedState extends State> {
   /// Register [transition] function as one of [DefinedState]'s event handler
   /// for [DefinedEvent]
   ///
-  /// - If [transition] return a [State], state machine stops any further
+  /// - If [transition] return a [State], the state machine stops any further
   /// event handlers evaluation and transition to the returned state.
-  /// - If [transition] return null, state machine will continue other event
-  /// handlers evaluation.
+  /// - If [transition] returns null, the state machine will continue other event
+  /// handlers' evaluation.
   ///
   /// You can have multiple event handlers registered for the same [DefinedEvent].
-  /// When an event is received, every handlers that match event will be evaluated
-  /// **in their definition order**. Parent states's event handlers are always
+  /// When an event is received, every handler that matches the event will be evaluated
+  /// **in their definition order**. Parent states' event handlers are always
   /// evaluated before nested states handlers so if a parent transit to a new
   /// state, children handlers will not be evaluated.
   ///
@@ -163,22 +163,22 @@ class StateDefinitionBuilder<Event, State, DefinedState extends State> {
         ),
       );
 
-  /// Define a nested state
+  /// Define a nested state.
   ///
-  /// Works the same way than top-level define calls.
-  /// [builder] function that takes a [StateDefinitionBuilder] as parameter
+  /// Works the same way as top-level define calls.
+  /// [builder] function that takes an [StateDefinitionBuilder] object as a parameter
   /// and should return it. [StateDefinitionBuilder] is used to register event
-  /// handlers and side effects to for the defined [NestedState].
+  /// handlers and side effects for the defined [NestedState].
   ///
   /// Nested states should always be sub-classes of their parent state.
   ///
   /// To enter a nested state, you should explicitly transition to it.
   /// The state machine will not consider that you've entered the child state
-  /// when you transit to one of its parent.
-  /// The inverse is not true the state machine consider entering a parent
-  /// state if you transition to one of its nested state.
+  /// when you transit to one of its parents.
+  /// The inverse is not true the state machine considers entering a parent
+  /// state if you transition to one of its nested states.
   ///
-  /// Their is no depth limit in state nesting but you should never define a
+  /// There is no depth limit in state nesting but you should never define a
   /// state more than ones.
   ///
   /// Nested state's event handlers and side effects are always evaluated after
