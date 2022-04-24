@@ -55,8 +55,10 @@ abstract class StateMachine<Event, State> extends Bloc<Event, State> {
   StateMachine(
     State initial, {
 
-    /// Used to change how state machine process incoming events. The default event transformer is [droppable] by default,
-    /// meaning it process only one event and ignore (drop) any new events until the next event-loop iteration.
+    /// Used to change how the state machine process incoming events.
+    /// The default event transformer is [droppable] by default, meaning it
+    /// processes only one event and ignores (drop) any new events until the
+    /// next event-loop iteration.
     EventTransformer<Event>? transformer,
   }) : super(initial) {
     super.on<Event>(_mapEventToState, transformer: transformer ?? droppable());
@@ -67,16 +69,16 @@ abstract class StateMachine<Event, State> extends Bloc<Event, State> {
 
   /// Register [DefinedState] as one of the allowed machine's states.
   ///
-  /// The define method should be called once for allowed state
+  /// The define method should be called once for the allowed state
   /// **inside the class constructor**. Defined states should
   /// always be sub-classes of the [State] class.
   ///
   /// The define method takes an optional [definitionBuilder] function as
-  /// parameter that give the opportunity to register events handler and
+  /// a parameter that gives the opportunity to register events handler and
   /// transitions for the [DefinedState] thanks to a [StateDefinitionBuilder]
-  /// passed as parameter to the builder function.
-  /// The [StateDefinitionBuilder] provides all necessary methods to registers
-  /// event handlers, side effects and nested states. The [definitionBuilder]
+  /// passed as a parameter to the builder function.
+  /// The [StateDefinitionBuilder] provides all necessary methods to register
+  /// event handlers, side effects, and nested states. The [definitionBuilder]
   /// should call needed [StateDefinitionBuilder]'s object methods to describe
   /// the [DefinedState] and then return it.
   ///
@@ -114,7 +116,7 @@ abstract class StateMachine<Event, State> extends Bloc<Event, State> {
 
     assert(() {
       if (_definedStates.contains(DefinedState)) {
-        throw "$DefinedState defined multiple times. State should only be defined once.";
+        throw "$DefinedState has been defined multiple times. States should only be defined once.";
       }
       _definedStates.add(DefinedState);
       return true;
