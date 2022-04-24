@@ -127,7 +127,23 @@ State machine states are defined using `StateMachine`'s `define<State>` method i
 ```dart
 class MyStateMachine extends StateMachine<Event, State> {
   MyStateMachine() : super(InitialState()) {
-    define<InitialState>();
+
+    // InitialState definition
+    define<InitialState>(($) => $
+      // onEnter side effect
+      ..onEnter((InitialState state) { /** ... **/ })
+
+      // onChange side effect
+      ..onChange((InitialState state, InitialState nextState) { /** ... **/ })
+
+      // onExit side effect
+      ..onExit((InitialState state) { /** ... **/ })
+
+      // transition to OtherState when receiving SomeEvent
+      ..on<SomeEvent>((SomeEvent event, InitialState state) => OtherState())
+    );
+
+    // OtherState definition
     define<OtherState>();
   }
 }
