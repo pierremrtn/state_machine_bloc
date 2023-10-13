@@ -1,8 +1,8 @@
 import 'package:bloc_test/bloc_test.dart';
-import 'package:infinite_list_state_machine/posts/bloc/post_bloc.dart';
-import 'package:infinite_list_state_machine/posts/models/post.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
+import 'package:infinite_list_state_machine/posts/bloc/post_bloc.dart';
+import 'package:infinite_list_state_machine/posts/models/post.dart';
 import 'package:mocktail/mocktail.dart';
 
 class MockClient extends Mock implements http.Client {}
@@ -140,7 +140,7 @@ void main() {
           PostFetchInProgress(
             posts: [],
           ),
-          PostError(posts: [], error: "500"),
+          PostError(posts: [], error: '500'),
         ],
         verify: (_) {
           verify(() => httpClient.get(_postsUrl(start: 0))).called(1);

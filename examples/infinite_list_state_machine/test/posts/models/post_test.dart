@@ -1,6 +1,6 @@
 // ignore_for_file: prefer_const_constructors
-import 'package:infinite_list_state_machine/posts/models/models.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:infinite_list_state_machine/posts/models/models.dart';
 
 void main() {
   group('Post', () {

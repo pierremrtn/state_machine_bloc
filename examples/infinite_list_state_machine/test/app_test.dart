@@ -1,6 +1,6 @@
+import 'package:flutter_test/flutter_test.dart';
 import 'package:infinite_list_state_machine/app.dart';
 import 'package:infinite_list_state_machine/posts/posts.dart';
-import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('App', () {
