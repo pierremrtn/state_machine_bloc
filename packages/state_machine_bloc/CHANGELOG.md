@@ -1,3 +1,6 @@
+## 0.0.2
+* Bump max sdk version to 4.0.0
+
 ## 0.0.1
 * Initial release 🎉
 
