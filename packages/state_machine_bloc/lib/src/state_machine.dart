@@ -49,12 +49,11 @@ part 'state_definition_builder.dart';
 /// See also:
 ///
 /// * [Bloc] class for more information about general blocs behavior
-/// {@endtemplate state_machine}
+/// {@endtemplate}
 abstract class StateMachine<Event, State> extends Bloc<Event, State> {
   /// {@macro state_machine}
   StateMachine(
     State initial, {
-
     /// Used to change how the state machine process incoming events.
     /// The default event transformer is [droppable] by default, meaning it
     /// processes only one event and ignores (drop) any new events until the
@@ -66,6 +65,7 @@ abstract class StateMachine<Event, State> extends Bloc<Event, State> {
 
   final List<Type> _definedStates = [];
   final List<_StateDefinition> _stateDefinitions = [];
+  bool _closed = false;
 
   /// Register [DefinedState] as one of the allowed machine's states.
   ///
@@ -102,8 +102,7 @@ abstract class StateMachine<Event, State> extends Bloc<Event, State> {
   void define<DefinedState extends State>([
     StateDefinitionBuilder<Event, State, DefinedState> Function(
       StateDefinitionBuilder<Event, State, DefinedState>,
-    )?
-        definitionBuilder,
+    )? definitionBuilder,
   ]) {
     late final _StateDefinition definition;
     if (definitionBuilder != null) {
@@ -150,6 +149,33 @@ abstract class StateMachine<Event, State> extends Bloc<Event, State> {
     }
   }
 
+  /// Notifies the [Bloc] of a new [event] which triggers
+  /// all corresponding [EventHandler] instances.
+  ///
+  /// * A [StateError] will be thrown if there is no event handler
+  /// registered for the incoming [event].
+  ///
+  /// * A [StateError] will be thrown if the bloc is closed and the
+  /// [event] will not be processed.
+  @override
+  @mustCallSuper
+  void add(Event event) {
+    if (_closed) {
+      // Since StateMachine handles onEnter/onExit/onChange methods
+      // in the [Bloc.onChange] handler, these side effects cannot be awaited.
+      // Due to this, the bloc has no understanding of when these effects may be
+      // completed, and they aren't treated like normal event handlers
+      // that are run to completion before a bloc is closed.
+      //
+      // In this case, the bloc will be closed for adding events, but [isClosed]
+      // will be false, because the bloc state controller is not yet closed.
+      // Overriding add here allows us to ignore events from side effects if the
+      // bloc has been closed.
+      return;
+    }
+    super.add(event);
+  }
+
   /// Called whenever a [change] occurs with the given [change].
   /// A [change] occurs when a new `state` is emitted.
   /// [onChange] is called before the `state` of the `cubit` is updated.
@@ -182,6 +208,19 @@ abstract class StateMachine<Event, State> extends Bloc<Event, State> {
       currentDefinition.onExit(change.currentState);
       nextDefinition.onEnter(change.nextState);
     }
+  }
+
+  /// Closes the `event` and `state` `Streams`.
+  /// This method should be called when a [Bloc] is no longer needed.
+  /// Once [close] is called, `events` that are [add]ed will not be
+  /// processed.
+  /// In addition, if [close] is called while `events` are still being
+  /// processed, the [Bloc] will finish processing the pending `events`.
+  @mustCallSuper
+  @override
+  Future<void> close() async {
+    _closed = true;
+    super.close();
   }
 
   _StateDefinition _definition(State state) =>
