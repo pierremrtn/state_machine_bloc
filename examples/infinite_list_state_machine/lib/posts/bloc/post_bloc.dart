@@ -1,12 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:state_machine_bloc/state_machine_bloc.dart';
-import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
-import 'package:infinite_list_state_machine/posts/posts.dart';
 import 'package:http/http.dart' as http;
-import 'package:stream_transform/stream_transform.dart';
+import 'package:infinite_list_state_machine/posts/posts.dart';
+import 'package:state_machine_bloc/state_machine_bloc.dart';
 
 part 'post_event.dart';
 part 'post_state.dart';
