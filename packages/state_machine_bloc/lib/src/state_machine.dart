@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:meta/meta.dart';
@@ -140,10 +142,10 @@ abstract class StateMachine<Event, State> extends Bloc<Event, State> {
     throw "Invalid use of StateMachine.on(). You should use StateMachine.define() instead.";
   }
 
-  void _mapEventToState(Event event, Emitter emit) {
+  void _mapEventToState(Event event, Emitter emit) async {
     final definition = _stateDefinitions.firstWhere((def) => def.isType(state));
 
-    final nextState = definition.add(event, state) as State?;
+    final nextState = (await definition.add(event, state)) as State?;
     if (nextState != null) {
       emit(nextState);
     }

@@ -3,7 +3,7 @@ part of 'state_machine.dart';
 /// Signature of a function that may or may not emit a new state
 /// base on it's current state an an external event
 typedef EventTransition<Event, SuperState, CurrentState extends SuperState>
-    = SuperState? Function(Event, CurrentState);
+    = FutureOr<SuperState?> Function(Event, CurrentState);
 
 /// Signature of a callback function called by the state machine
 /// in various contexts that hasn't the ability to emit new state
@@ -26,7 +26,7 @@ class _StateEventHandler<SuperEvent, SuperState,
 
   final EventTransition<DefinedEvent, SuperState, DefinedState> transition;
 
-  SuperState? handle(SuperEvent e, SuperState s) =>
+  FutureOr<SuperState?> handle(SuperEvent e, SuperState s) =>
       transition(e as DefinedEvent, s as DefinedState);
 }
 
@@ -90,20 +90,20 @@ class _StateDefinition<Event, SuperState, DefinedState extends SuperState> {
     _nestedStateDefinition(state)?.onExit(state);
   }
 
-  SuperState? add(
+  FutureOr<SuperState?> add(
     Event event,
     DefinedState state,
-  ) {
+  ) async {
     final stateHandlers = _handlers.where(
       (handler) => handler.isType(event),
     );
     for (final handler in stateHandlers) {
-      final nextState = handler.handle(event, state) as SuperState?;
+      final nextState = (await handler.handle(event, state)) as SuperState?;
       if (nextState != null) return nextState;
     }
     final nestedDefinition = _nestedStateDefinition(state);
     if (nestedDefinition != null) {
-      return nestedDefinition.add(event, state);
+      return nestedDefinition.add(event, state) as FutureOr<SuperState?>;
     }
     return null;
   }
