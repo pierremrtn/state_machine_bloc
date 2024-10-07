@@ -1,4 +1,5 @@
 ## 0.0.2
+* Support for async transitions
 * Bump max sdk version to 4.0.0
 
 ## 0.0.1
